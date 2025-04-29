@@ -17,6 +17,7 @@ There is also an errorlog.txt file (file name can be changed in sushiconfig.py) 
 It always start by giving you all of the URLs for all of the report types for all of the providers. You can actually paste a SUSHI API URL directly into your web browser to
 see if it works, if there was a problem with it, and you can share that with the the providers tech support or anyone else you have helping you; just be aware that it contains all of
 your "credentials" and some people consider parts of that to be like "passwords" so think carefully about where you share it.
+The error log is simply a plain text file so if you want to save it for later analysis but keep running the Harvester with other providers, you can easily just make a copy of it wherever you want it.
 
 These are the steps it goes through:
 1. read in all of your providers info
