@@ -21,4 +21,4 @@ These are the steps it goes through:
 2. for each provider, run the API command to get the list of reports that provider supports (eg a journals-only platform won't support TR_B1 which is for books)
 3. fetch the json for each supported report and save it into its own json file (see docs/files_and_folders)
 4. use that json to generate .tsv files just like you would have gotten interactively from the provider's own "institutional admin" website
-5. use that data again to populate/add to an sqlite database for using to run more complex searches than you can do in an individual spreadsheet (see the sqlite do)
+5. use that data again to populate/add to an sqlite database for using to run more complex searches than you can do in an individual spreadsheet (see docs/sqlite_database_info)
