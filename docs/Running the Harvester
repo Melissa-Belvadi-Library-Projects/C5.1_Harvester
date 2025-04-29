@@ -8,6 +8,8 @@ You can of course enter other start and end dates, both in YYYY-MM format.
 
 Then  it just runs until it's done. It puts some basic progress information in the running window, and will give special notice there for 
   problems that you probably want to know about, especially if a provider/report won't have the data you asked for.
+In python, errors that the program can catch and deal with and not have the whole program simply "crash" are called "Exceptions".
+Exceptions usually do mean giving up on the steps for that report or even entire provider, but usually don't end the program completely.
 
 The most common examples of that are if there is no data/usage for some or all of the date range you specified.
 
