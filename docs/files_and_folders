@@ -2,6 +2,8 @@ This document explains what the Harvester saves and where, for your COUNTER repo
 
 The Harvester keeps everything in the folder where you installed it, including subfolders within that.
 
+JSON files:
+
 The Harvester retrieves your COUNTER reports using the SUSHI API system, which sends the Harvester the data in a format called "json".
 JSON is human readable, but only barely. If you want the technical details of the COUNTER json, see the documentation at:
 https://countermetrics.stoplight.io/docs/counter-sushi-api/au9uaf0yg84mo-counter-api
@@ -23,11 +25,15 @@ The COUNTER documentation at: https://cop5.projectcounter.org/en/5.1.0.1/04-repo
 that you will only get if you ask for it as the "C" rather than "M" "Column Elements".
 This Harvester uses the "EX" moniker for API requests that have added all possible attributes "to show" (extra columns in the tsv output) so you get all possible data saved.
 
+TSV Files - the COUNTER reports:
+
 After retrieving the json raw data, the Harvester generates from that data a COUNTER-compliant "tsv" file that is 
 intended to be opened in spreadsheet software like Excel and Google Sheets.
 Those files are all saved in the subfolder "tsv_folder" (unless you changed the name in sushiconfig.py), and just like the json_folder, it creates subfolders for each provider.
 Except for the "_EX" files, all tsv files in this folder are COUNTER standard files that are the same as 
 what you would get manually downloading the reports from your provider's librarian admin/dashboard service.
+
+SQLITE Database:
 
 Then the Harvester saves all of the data from all of the EX" reports into an sqlite database.
 The reason for the sqlite database is that it gives you the power to generate tsvs that combine data across all of your providers, instead of having to look one tsv at 
@@ -44,3 +50,7 @@ Because they (json and tsv) are stored with unique names for each provider, repo
 computer's operating system and how often you run reports (eg yearly vs monthly), may eventually approach some file/folder limitations of your system (eg how many files in a single folder).
 
 If you do run exactly the same report on the same day, it will just overwrite the existing file with the updated version.
+
+The ERRORLOG:
+Every time you run the Harvester, it creates a new errorlog (empties the old one if it existed).
+Most of this file is where important error messages are saved, but it also has a few lines tagged "INFO" that are not errors but give possibly useful information if there are errors with specific providers/reports.
