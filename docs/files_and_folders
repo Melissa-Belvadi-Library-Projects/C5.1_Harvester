@@ -7,6 +7,7 @@ JSON is human readable, but only barely. If you want the technical details of th
 https://countermetrics.stoplight.io/docs/counter-sushi-api/au9uaf0yg84mo-counter-api
 
 The Harvester saves every json report it fetches in the folder specified in the sushiconfig.py file; by default it is "json_folder".
+Within json_folder will be subfolders for each provider, using the Provider_Name from your providers.tsv file.
 It names the file with the following information separated by underscores:
 Provider-Name_Report-Type_Report-Begin-Date_Report-End-Date_Retrieved-Date.json
 Provider_Name comes from your providers.tsv. You specify the begin and end dates that you want included in the report when you run the Harvester.
@@ -24,7 +25,7 @@ This Harvester uses the "EX" moniker for API requests that have added all possib
 
 After retrieving the json raw data, the Harvester generates from that data a COUNTER-compliant "tsv" file that is 
 intended to be opened in spreadsheet software like Excel and Google Sheets.
-Those files are all saved in the subfolder "tsv_folder" (unless you changed the name in sushiconfig.py).
+Those files are all saved in the subfolder "tsv_folder" (unless you changed the name in sushiconfig.py), and just like the json_folder, it creates subfolders for each provider.
 Except for the "_EX" files, all tsv files in this folder are COUNTER standard files that are the same as 
 what you would get manually downloading the reports from your provider's librarian admin/dashboard service.
 
@@ -35,3 +36,11 @@ For more information about using the sqlite database, see the document "sqlite" 
 Note that the sqlite database can get very large over time depending on how many providers you have and especially how many support IR reports when that's implemented.
 Make sure you have at least a few Gigabytes of free space on the drive where you are putting all this.
 Space is not a real concern for the json and tsv files, just the sqlite database.
+
+You are free to do whatever you want with the files in the json_folder and tsv_folder tree. The Harvester never looks back to use those or expects them to still be there.
+If they start to take up too much space, you are free to zip them, archive them elsewhere or anything else you want to do with them.
+
+Because they (json and tsv) are stored with unique names for each provider, report_type, date range, AND run-date, you will start to get some significant build up over time and depending on your
+computer's operating system and how often you run reports (eg yearly vs monthly), may eventually approach some file/folder limitations of your system (eg how many files in a single folder).
+
+If you do run exactly the same report on the same day, it will just overwrite the existing file with the updated version.
