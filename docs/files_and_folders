@@ -1,0 +1,37 @@
+This document explains what the Harvester saves and where, for your COUNTER reports.
+
+The Harvester keeps everything in the folder where you installed it, including subfolders within that.
+
+The Harvester retrieves your COUNTER reports using the SUSHI API system, which sends the Harvester the data in a format called "json".
+JSON is human readable, but only barely. If you want the technical details of the COUNTER json, see the documentation at:
+https://countermetrics.stoplight.io/docs/counter-sushi-api/au9uaf0yg84mo-counter-api
+
+The Harvester saves every json report it fetches in the folder specified in the sushiconfig.py file; by default it is "json_folder".
+It names the file with the following information separated by underscores:
+Provider-Name_Report-Type_Report-Begin-Date_Report-End-Date_Retrieved-Date.json
+Provider_Name comes from your providers.tsv. You specify the begin and end dates that you want included in the report when you run the Harvester.
+The Retrieved-Date is the YYYY_MM_DD that you made this report.
+The Report-Type is generated from the JSON reports themselves.
+The Harvester uses the API to get a list of supported reports for each of your providers.
+
+The special exception to that is that the Harvester actually creates two reports for the main Reports: PR,DR,TR, and IR (when IR is implemented).
+You will see TR and TR_EX, PR and PR_EX, DR and DR_EX, and IR and IR_EX.
+The EX ("extra") one is not a standard COUNTER report but a unique feature to this Harvester.
+The default reports (TR,PR,DR,IR) don't actually include the complete data that they could. For instance, the TR does not include the YOP (year of publication).
+The COUNTER documentation at: https://cop5.projectcounter.org/en/5.1.0.1/04-reports/index.html lists the data (columns) 
+that you will only get if you ask for it as the "C" rather than "M" "Column Elements".
+This Harvester uses the "EX" moniker for API requests that have added all possible attributes "to show" (extra columns in the tsv output) so you get all possible data saved.
+
+After retrieving the json raw data, the Harvester generates from that data a COUNTER-compliant "tsv" file that is 
+intended to be opened in spreadsheet software like Excel and Google Sheets.
+Those files are all saved in the subfolder "tsv_folder" (unless you changed the name in sushiconfig.py).
+Except for the "_EX" files, all tsv files in this folder are COUNTER standard files that are the same as 
+what you would get manually downloading the reports from your provider's librarian admin/dashboard service.
+
+Then the Harvester saves all of the data from all of the EX" reports into an sqlite database.
+The reason for the sqlite database is that it gives you the power to generate tsvs that combine data across all of your providers, instead of having to look one tsv at 
+a time when you have, for instance, the same title across multiple platforms.
+For more information about using the sqlite database, see the document "sqlite" in the Harvester docs folder.
+Note that the sqlite database can get very large over time depending on how many providers you have and especially how many support IR reports when that's implemented.
+Make sure you have at least a few Gigabytes of free space on the drive where you are putting all this.
+Space is not a real concern for the json and tsv files, just the sqlite database.
