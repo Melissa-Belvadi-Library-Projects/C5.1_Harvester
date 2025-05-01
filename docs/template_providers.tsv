@@ -1,0 +1,60 @@
+Name	Base_URL	Customer_ID	Requestor_ID	API_Key	Platform	Version	delay	retry
+GALE	https://api.siqcloud.online/counterapi/r51	required	required	required		5.1	2	
+Statista	https://sushi.statista.com/r51	required	required	required		5.1		
+JAMA	https://sitemaster.jamanetwork.com/sushi/r51	required	required	required		5.1		
+Aclands_Anatomy	https://sitemaster.lwwhealthlibrary.com/sushi/r51	required	required	required		5.1		
+GeoScienceWorld	https://sitemaster.geoscienceworld.org/sushi/r51	required	required	required		5.1		
+Duke-Euclid	https://sitemaster.read.dukeupress.edu/sushi/r51	required	required	required		5.1		
+Bates_Videos	https://sitemaster.lwwhealthlibrary.com/sushi/r51	required	required	required		5.1		
+Allen_Press	https://sitemaster.meridian.allenpress.com//sushi/r51	required	required	required		5.1		
+Elsevier-EngVillage	https://api.elsevier.com/sushi/r51	required	required	required	ev	5.1		1
+Elsevier-SciDirect	https://api.elsevier.com/sushi/r51	required	required	required	sd	5.1		1
+ELSEVIER-Scopus	https://api.elsevier.com/sushi/r51	required	required	required	sc	5.1		1
+Proquest_Journals	https://sushi.proquest.com/counter/r51	required		required		5.1		
+MIT-Press	https://sitemaster.direct.mit.edu/sushi/r51	required	required	required		5.1		
+ASME	https://sitemaster.asmedigitalcollection.asme.org/sushi/r51	required	required	required		5.1		
+Docuseek	https://docuseek2.com/counter/r51	required		required		5.1		
+Brill	https://sushi5.scholarlyiq.com/counter/r51	required	required	required		5.1	2	
+Springer-AdisInsight	https://counter.public.springernature.app/r51	required		required		5.1		
+Springer-BMC	https://counter.public.springernature.app/r51	required		required		5.1		
+Springer-Link	https://counter.public.springernature.app/r51	required		required		5.1		
+Springer-Materials	https://counter.public.springernature.app/r51	required		required		5.1		
+Springer-Nature	https://counter.public.springernature.app/r51	required		required		5.1		
+Springer-NatureAsia	https://counter.public.springernature.app/r51	required		required		5.1		
+Springer-ResearchGate	https://counter.public.springernature.app/r51	required		required		5.1		
+Springer-SciAm	https://counter.public.springernature.app/r51	required		required		5.1		
+Annual_Reviews	https://www.annualreviews.org/counter5/sushi/r51	required	required			5.1		
+Ingenta_Connect	https://www.ingentaconnect.com/sushiadmin/statistics/sushi/r51	required	required			5.1		
+EBSCO	https://sushi.ebscohost.com/r51	required	required			5.1		
+Microbiology_Society	https://www.microbiologyresearch.org/counter5/sushi/r51	required	required			5.1		
+Cambridge-Core	https://counter5.cambridge.org/r51	required	required			5.1		
+Edward_Elgar	https://sushi5.scholarlyiq.com/counter/r51	required	required			5.1	2	
+BIOONE	https://sushi5.scholarlyiq.com/counter/r51	required	required			5.1	2	
+AVMA	https://sushi5.scholarlyiq.com/counter/r51	required	required			5.1	2	
+ACS	https://pubs.acs.org/r51	required	required			5.1		
+AAAS	https://www.science.org/r51	required	required			5.1		
+ACM_Digital_Library	https://dl.acm.org/r51	required	required			5.1		
+APS-Amer._Physiological_Society	https://journals.physiology.org/r51	required	required			5.1	1	
+ASM_American_Society_for_Microbiology	https://journals.asm.org/r51	required	required			5.1		
+CABI	https://cabidigitallibrary.org/r51	required	required			5.1		
+Canadian_Science_Publishing	https://cdnsciencepub.com/r51	required	required			5.1		
+Healio_Slack	https://journals.healio.com/r51	required	required			5.1		
+Informit	https://search.informit.org/r51	required	required			5.1		
+JSTOR	https://www.jstor.org/sushi/r51	required	required			5.1		1
+Mark-Allen-Group	https://www.magonlinelibrary.com/r51	required	required			5.1		
+Mary-Ann-Liebert	https://www.liebertpub.com/r51	required	required			5.1		
+NEJM	https://www.nejm.org/r51	required	required			5.1		
+PNAS	https://www.pnas.org/r51	required	required			5.1		
+PsychiatryOnline	https://psychiatryonline.org/r51	required	required			5.1		
+Royal_society_publishing	https://royalsocietypublishing.org/r51	required	required			5.1		
+Sage_journals	https://journals.sagepub.com/r51	required	required			5.1		
+Taylor_&_Francis_books	https://api.taylorandfrancis.com/v2/counterreports	required	required			5.1		
+Taylor_&_Francis_journals	https://www.tandfonline.com/r51	required	required			5.1		
+University_of_Chicago	https://www.journals.uchicago.edu/r51	required	required			5.1		
+Wiley	https://onlinelibrary.wiley.com/r51	required	required			5.1		
+Philosophy-Documentation-Centre	https://sushi5.scholarlyiq.com/counter/r51	required	required			5.1	5	
+Oxford_Academic	https://sushi5.scholarlyiq.com/counter/r51	required	required			5.1	10	
+Oxford_books	https://sushi5.scholarlyiq.com/counter/r51	required	required			5.1	10	
+ARRS	https://www.ajronline.org/r51	required	required			5.1		
+Sage_books	https://securecenter.sagepub.com/SushiService/r51	required	required			5.1		
+University-of-Toronto	https://utppublishing.com/r51	required	required			5.1		
