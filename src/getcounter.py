@@ -1,0 +1,46 @@
+#### Main program
+import sqlite3
+from datetime import datetime
+from logger import log_error
+from create_tables import create_data_table
+from load_providers import load_providers  # Import the load_providers function
+from fetch_json import fetch_json  # Import the fetch_json function to get report data
+from process_item_details import process_item_details
+from sushiconfig import sqlite_filename, providers_file, error_log_file
+
+
+def json_to_sqlite(dict_providers):
+    # Connect to the SQLite database
+    conn = sqlite3.connect(sqlite_filename)
+    cursor = conn.cursor()
+
+    # Create tables if they do not exist
+    create_data_table(cursor)
+    #create_header_table(cursor)
+    conn.commit()
+    conn.close()
+    # Process each provider's info
+    for provider_name in dict_providers.keys():
+        this_provider = dict_providers[provider_name]
+        for report_id, report_url  in this_provider['Report_URLS'].items():
+            #api_url = this_provider['Report_URLS'].get(report_id, 'Not available')  # use url for api
+            log_error(f"\nINFO: Retrieving report: {provider_name}: {report_id.upper()}: {report_url}")
+            print(f"Retrieving report: {provider_name}: {report_id.upper()}")
+            process_item_details(this_provider,report_id,report_url)
+
+
+if __name__ == "__main__":
+
+    open(error_log_file, 'w', encoding="utf-8").close()   #### empty out error log file
+    current_time = datetime.now()
+    log_error(f'INFO: Start of program run: Current date and time: {current_time}')
+    # Load providers data from providers.tsv
+    providers = load_providers(providers_file)  
+
+    # Fetch the structured data using fetch_json
+    providers_dict = fetch_json(providers)
+    if providers_dict and isinstance(providers_dict, dict):
+        json_to_sqlite(providers_dict)
+    else:
+        log_error(f'Getcounter Failed to get the providers info from {providers_file}\n')
+    print(f"Done all providers, all reports.\nCheck {error_log_file} for problems/reports that failed/exceptions")
