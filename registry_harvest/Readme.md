@@ -6,3 +6,5 @@ I've also provided a recent run of it, as of May 3, 2025.
 
 Be aware that this information is constantly changing, especially now when many providers are scrambling to get their 5.1 SUSHI servers working and passing the audits.
 But at the least, it provides the info regarding their Base URL and some advice as to where you should look to get your institution's specific credentials (eg customer_id).
+
+There is also the usual python requirements.txt file, but the only package not already part of python is Requests, the widely-used package for making API (and other web server) requests.
