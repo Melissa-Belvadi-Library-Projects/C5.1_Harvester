@@ -8,6 +8,7 @@ tsv_dir = 'tsv_folder'
 providers_file = 'providers.tsv'
 save_empty_report = True
 always_include_header_metric_types = True
+default_begin = '2025-01'
 
 Most of these are self-explanatory.
 The "dirs" can be renamed but don't try to completely change the path outside of the main program folder as parts of the Harvester will expect those to be subfolders directly below the main Harvester folder.
