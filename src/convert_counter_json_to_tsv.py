@@ -4,15 +4,17 @@ import os
 import re
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import inspect
 import tsv_utils
 from tsv_utils import default_metric_types, format_nested_id, format_exceptions
 from sushiconfig import tsv_dir, always_include_header_metric_types, save_empty_report
 from logger import log_error
 from reporting_period import reporting_period_build
-
+from convert_ir_reports import get_ir_a1_data, get_ir_m1_data, get_ir_data, get_ir_ex_data
 #import pdb; pdb.set_trace()
 
 def extract_metric_types(report_items):
+    #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
     metric_types = set()  # Using a set to avoid duplicates
     # Check if report_items has at least one item
     for r_item in report_items:
@@ -28,7 +30,7 @@ def extract_metric_types(report_items):
 
 
 def date_columns(report_items):
-
+    #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
     year_month_columns = set()  # Use a set to avoid duplicates
     # Iterate over each item in the report_items list
     for item in report_items:
@@ -46,7 +48,8 @@ def date_columns(report_items):
     # Return the sorted list of unique Year-Month columns
     return sorted(year_month_columns)
 
-def generate_date_range(date_string):
+def generate_date_range(date_string): # from the header info, as opposed to the performance info
+    #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
     try:
         # Parse the string to extract Begin_Date and End_Date
         date_parts = dict(part.split("=") for part in date_string.split("; "))
@@ -70,13 +73,14 @@ def generate_date_range(date_string):
 
         return date_range_list
     except Exception as e:
-        log_error(f"Error: {str(e)}")
+        log_error(f"ERROR: {str(e)}")
         return None
 
 # Convert dict report_filters to proper string
 # the argument should be  passed as
 # report_header.get("Report_Filters", {})
 def get_report_filter_string(dict):
+    #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
     if dict:
         #header_data_type = str(dict.get("Data_Type", ""))
         header_data_type = "|".join(dict.get("Data_Type", [])) if isinstance(dict.get("Data_Type", []), list) else ""
@@ -108,8 +112,21 @@ def get_default_metric_types(report_type):
     metric_list = default_metric_types.get(report_type,[])
     return metric_list
 
-def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
+def ir_a1_extract_metrics_and_dates(report_items):#IR_A1/IR_M1 metrics and date columns are different from other reports
+    #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
+    metric_type_list = set()
+    usage_dates_list = set()
+    for report_item in report_items:
+        for item in report_item.get("Items", []):
+            for performance_data in item.get("Attribute_Performance", []):
+                performance = performance_data.get("Performance", {})
+                for metric_type, dates in performance.items():
+                    metric_type_list.add(metric_type)
+                    usage_dates_list.update(dates.keys())
+    return sorted(metric_type_list), sorted(usage_dates_list)
 
+def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
+    #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
     try:
         # Load JSON data for reading
         with open(json_file_path, "r", encoding="utf-8") as f:
@@ -117,19 +134,17 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
         # Extract Report_Header and Report_Items
         report_header = counter_data.get("Report_Header", {})
         if not report_header:
-            print(f'CC No report header, skipping entire report\n')
-            log_error(f'CC No report header, skipping entire report\n')
-            log_error(f'CC No report header, skipping entire report\n')
+            print(f'ERROR:  No report header, skipping entire report\n')
+            log_error(f'ERROR:  No report header, skipping entire report\n')
             return 0
         report_items = counter_data.get("Report_Items", None)
         if not report_items and not save_empty_report:
             print(f"No report items in {json_file_path}.\nReason: {report_header.get('Exceptions',[])[0].get('Message', '')}\n")
-            log_error(f'No report items in {json_file_path}. Exceptions: {report_header.get('Exceptions',[])}')
-            log_error(f'No report items in {json_file_path}. Exceptions: {report_header.get('Exceptions',[])}')
+            log_error(f'ERROR: No report items in {json_file_path}. Exceptions: {report_header.get('Exceptions',[])}')
             return 0
         # Ensure tsv_dir is a string
         if not isinstance(tsv_dir, str):
-            raise ValueError(f"tsv_dir must be a string, but got {type(tsv_dir)}: {tsv_dir}")
+            raise ValueError(f"ERROR: tsv_dir must be a string, but got {type(tsv_dir)}: {tsv_dir}")
         vendor = provider_info.get('Name', '').replace(' ','_')
         tsvsubfolder = os.path.join(tsv_dir, vendor)
         if not os.path.exists(tsv_dir):
@@ -138,8 +153,8 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
             os.makedirs(tsvsubfolder) # tsv folder for this vendor exists
         # Ensure json_file_path is a string and compute tsv_filename
         if not isinstance(json_file_path, str):
-            log_error(f' Unable to name the tsv, problem with json filename: {json_file_path} type: {type(json_file_path)}')
-            raise ValueError(f"json_file_path must be a string, but got {type(json_file_path)}: {json_file_path}")
+            log_error(f'ERROR: Unable to name the tsv, problem with json filename: {json_file_path} type: {type(json_file_path)}')
+            raise ValueError(f"ERROR: json_file_path must be a string, but got {type(json_file_path)}: {json_file_path}")
         
         tsv_basename = os.path.basename(json_file_path)
         tsv_filename = os.path.splitext(tsv_basename)[0] + ".tsv"
@@ -179,10 +194,18 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
         if report_items:
             column_order_list = column_mapping.get(report_type, None)
             if column_order_list is None:
-                log_error(f'There is no valid Report Type {report_type}, in {json_file_path}, skipping this report\n')
+                log_error(f'ERROR: There is no valid Report Type {report_type}, in {json_file_path}, skipping this report\n')
                 print(f'There is no valid Report Type {report_type}, in {json_file_path}, skipping this report\n')
-                raise ValueError(f"Unexpected report_id: '{report_type}'")
+                raise ValueError(f"ERROR: Unexpected report_id: '{report_type}'")
                 return None
+
+
+                #special def for IR_A1 metrics and date columns
+        if report_id in ("IR_A1", "IR_M1", "IR", "IR_EX"):
+            items_metrics, items_date_cols = ir_a1_extract_metrics_and_dates(report_items)
+        else:
+            items_metrics = ""
+            items_date_cols = ""
 
         #Set the report_header's Metric Types display list, not to be confused with the Metric_Type column in the table data
         # some providers don't put the metric_types in the report_header
@@ -190,9 +213,15 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
         metric_types_list = report_header.get('Report_Filters').get("Metric_Type",[])
         if not metric_types_list and report_type.endswith('EX') and always_include_header_metric_types:#user wants the metric_types for master reports, not the COUNTER standard result
             if report_items:
-                metric_types_list = extract_metric_types(report_items)# report_header metric_types is empty, get from combing report_items
+                if report_id not in ("IR_A1", "IR_M1", "IR", "IR_EX"):
+                    metric_types_list = extract_metric_types(report_items)# report_header metric_types is empty, get from combing report_items
+                else:
+                    metric_types_list = items_metrics
+
             else:
                 metric_types_list = ''
+        #log_error(f'Metric_Types_list: {metric_types_list}\n')
+
         # Standard views don't have metrics listed in report header
         ## and master reports don't repeat the list if it's the same as the default
         ### but the user can override both and always see the list in the header, using
@@ -217,7 +246,6 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
                             metric_type_string  = ""
                         else:#report has non-default metric_types selected, so display them in a master report
                             metric_type_string = "; ".join(metric_types_list)
-
 
         # Report Header rows (lines 1–13)
         inst_id_orig = report_header.get("Institution_ID")
@@ -270,12 +298,18 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
         if not report_items: # nothing else to do if we're saving an "empty" report
             return tsv_full_path
         #Get the data column header row ready with the year_month columns
-        # Extract year-month keys from the Performance section and add them as columns to column_order_list
+        # If missing from header, extract year-month keys from the Performance section and add them as columns to column_order_list
         year_month_columns = generate_date_range(rep_per)
-        #print(f'CC ymc = {year_month_columns}\n')
+        header_date_range = year_month_columns.copy()
+        #Get year_month_columns then add them to the total table column list
         if not year_month_columns:
-            year_month_columns = date_columns(report_items)
-            log_error(f'No usage year-months in report items, skipping this report: {json.dumps(report_header, separators=(",", ":"))}')
+            if report_id not in ("IR_A1", "IR_M1", "IR", "IR_EX"):
+                year_month_columns = date_columns(report_items)
+            else:
+                year_month_columns = items_date_cols
+                column_order_list = items_date_cols
+        if not year_month_columns: # unable to get year_month columns from the report header OR the report_items, this should never happen
+            log_error(f'ERROR: No usage year-months in report items, skipping this report: {json.dumps(report_header, separators=(",", ":"))}')
             return None
         else:
             if year_month_columns and year_month_columns[0] in column_order_list:
@@ -284,9 +318,7 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
                 column_order_list_dates = column_order_list.copy()
                 column_order_list_dates += year_month_columns # adds to the end of the list of report item columns
                 column_order_list = column_order_list_dates.copy()
-
-
-        # Final table headers: Use the predefined list plus dynamic year-month columns
+        # Final table headers: Use the predefined list plus dynamic year-month columns which is now in column_order_list
         # This is not to be confused with the report header in lines 1-13 of the tsv, written above to the fil
         # This has its own writerows at the bottom right before the data rows
         table_headers = list(column_order_list)
@@ -294,7 +326,7 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
         pattern = re.compile(r"^\d{4}-\d{2}$")
         for i, item in enumerate(table_headers):
             if pattern.match(item):  # Check if the item matches the yyyy-mm pattern
-                # Convert and replace the item with the formatted date
+                # Convert and replace the item with the formatted date so 2025-01 becomes Jan-2025 etc.
                 date_obj = datetime.strptime(item, "%Y-%m")
                 table_headers[i] = date_obj.strftime("%b-%Y")
 
@@ -305,122 +337,145 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
             # Write table header (line 15)
             writer.writerow(table_headers)
 
-        # Generate rows
-        for i_index, item in enumerate(report_items):  # "Item" is an array (list) of report_items
-            #Reset the row list for every item/attribute_performance
-            row = []  
-            row = [None] * len(column_order_list)  # Prepopulate/clear out the row with placeholders
-            #First the top level keys in the item that need to go into the rows if they are in column_order_list
-            item_fields_list = ["Title", "Platform", "Database", "Publisher", "Book_Segment_Count", "Publisher_ID"]
-            fields_to_add = list(set(item_fields_list) & set(column_order_list)) 
-            for field in fields_to_add:  #All of these are possible fields for this particular report type
-                if field == "Publisher_ID" and item.get('Publisher_ID',{}): 
-                    temp_value = item.get('Publisher_ID',{}) 
-                    if temp_value:
-                        value = str(format_nested_id(temp_value)).replace("\r", "")
-                        value =  value.replace("Proprietary:", "")
+        #Now we get the actual rows for the table
+        if report_type in ("IR_A1", "IR_M1", "IR", "IR_EX"):
+            if report_type == "IR_A1":
+                rows = get_ir_a1_data(report_items,header_date_range)#these are complete including the date columns and metrics
+            elif report_type == "IR_M1":
+                rows = get_ir_m1_data(report_items,header_date_range)
+            elif  report_type == "IR_EX": # Must be the master IR report extended
+                rows = get_ir_ex_data(report_items,header_date_range)
+            else: # Must be the master IR report
+                rows = get_ir_m1_data(report_items,header_date_range)
+            for row in rows:
+                # Add missing keys with empty string values
+                for column in column_order_list:
+                    if column not in row:
+                        row[column] = ''
+            for row in rows:
+                ordered_values = [row[column] for column in column_order_list]
+                with open(tsv_full_path, "a", newline="", encoding="utf-8-sig") as f:
+                    writer = csv.writer(f, delimiter="\t")
+                    writer.writerow(ordered_values)
+            print(f"TSV file successfully created at: {tsv_full_path}")
+            log_error(f"INFO: TSV file successfully created at: {tsv_full_path}")
+            #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
+            return tsv_full_path # Done with the IR_A1/M1 report
+        else:# Must be one of the non-IR reports or views
+            # Generate rows
+            for i_index, item in enumerate(report_items):  # "Item" is an array (list) of report_items
+                #Reset the row list for every item/attribute_performance
+                row = []
+                row = [None] * len(column_order_list)  # Prepopulate/clear out the row with placeholders
+                #First the top level keys in the item that need to go into the rows if they are in column_order_list
+                item_fields_list = ["Title", "Platform", "Database", "Publisher", "Book_Segment_Count", "Publisher_ID"]
+                fields_to_add = list(set(item_fields_list) & set(column_order_list))
+                for field in fields_to_add:  #All of these are possible fields for this particular report type
+                    if field == "Publisher_ID" and item.get('Publisher_ID',{}):
+                        temp_value = item.get('Publisher_ID',{})
+                        if temp_value:
+                            value = str(format_nested_id(temp_value)).replace("\r", "")
+                            value =  value.replace("Proprietary:", "")
+                        else:
+                            value = ''
                     else:
-                        value = ''
-                else:
-                    value = item.get(field,"")
-                col_index = column_order_list.index(field)
-                row[col_index] = value
-
-            #Handle the Item_ID columns - Item_ID is a dict with one or more key-value pairs
-            ### Only some of these will be present depending on the particular kind of item it is
-            #### Note that the column_order_list will always have Proprietary_ID, not Proprietary even if the provider uses the shorter form
-            if not isinstance(item, dict):
-                raise ValueError("Error: 'item' is not a dictionary!")
-                raise TypeError("Error: 'item' must be a dictionary.")
-            item_id_dict = item.get('Item_ID', {})
-            item_id_fields_list = ["DOI", "ISBN", "Print_ISSN", "Online_ISSN", "URI", "Proprietary", "Proprietary_ID"]
-            ## Only look for fields that are possible in and item_id AND possible in this particular report_type
-            fields_to_add = list(set(item_id_fields_list) & set(column_order_list)) 
-            if "Proprietary" not in fields_to_add and "Proprietary" in item_id_dict:
-                item_id_dict["Proprietary_ID"] = item_id_dict.pop("Proprietary")
-            for field in fields_to_add:
-                if field in fields_to_add:
-                    if not isinstance(item_id_dict, dict):
-                        continue
-                    value = item_id_dict.get(field, "")  # have to use the json original field key to get the value
+                        value = item.get(field,"")
                     col_index = column_order_list.index(field)
-                    row[col_index]= value
+                    row[col_index] = value
 
-            # Handle Attribute_Performance - some column values come from the top of A-P
-            # A-P is a list of dicts  but will have only one within any "item" in report_items
-            ### Note these should NOT be confused with report_header fields by these same names
-            attribute = item.get("Attribute_Performance", [])
-            attr_fields_list = ["Data_Type", "YOP", "Access_Method", "Access_Type"] # this is generic all possible fields from an A-P
-            ## Get the columns that both the list of possible attr fields AND the columns possible for this kind of report have
-            fields_to_add = list(set(attr_fields_list) & set(column_order_list)) 
-            # We have to empty out of row the values from a previous A-P block
-            for field in fields_to_add:
-                col_index = column_order_list.index(field)
-                row[col_index] = ""
-            ### A-P is a list, an attribute is a dict, and a "performance" within an attribute is a dict
-            for attr in attribute:  ### usully just one (dict) per item but in theory could be more than one
-                if 'Performance' not in attr: # in theory this should never happen but if it does, we skip this entire attr
-                    log_error(f'There is no performance in this attribute block - this should never happen but we have to skip this attribute')
-                    continue
-                if not isinstance(attr, dict):
-                    log_error(f' ATTR is {type(attr)}. That should never happen - skipping this atttribute block\n')
-                    continue
-                for field in fields_to_add: ## For each possible field that this particular report could have column for
-                    if field not in attr: ### now is this possible field also in our actual data
-                        continue
-                    ### If we've gotten here then we have an A-P key that is needed for this particular report
-                    ##### so we need to add that to our row
-                    ##### This field is definitely in this attr
-                    value = attr.get(field, '')
+                #Handle the Item_ID columns - Item_ID is a dict with one or more key-value pairs
+                ### Only some of these will be present depending on the particular kind of item it is
+                #### Note that the column_order_list will always have Proprietary_ID, not Proprietary even if the provider uses the shorter form
+                if not isinstance(item, dict):
+                    raise ValueError("Error: 'item' is not a dictionary!")
+                    raise TypeError("Error: 'item' must be a dictionary.")
+                item_id_dict = item.get('Item_ID', {})
+                item_id_fields_list = ["DOI", "ISBN", "Print_ISSN", "Online_ISSN", "URI", "Proprietary", "Proprietary_ID"]
+                ## Only look for fields that are possible in and item_id AND possible in this particular report_type
+                fields_to_add = list(set(item_id_fields_list) & set(column_order_list))
+                if "Proprietary" not in fields_to_add and "Proprietary" in item_id_dict:
+                    item_id_dict["Proprietary_ID"] = item_id_dict.pop("Proprietary")
+                for field in fields_to_add:
+                    if field in fields_to_add:
+                        if not isinstance(item_id_dict, dict):
+                            continue
+                        value = item_id_dict.get(field, "")  # have to use the json original field key to get the value
+                        col_index = column_order_list.index(field)
+                        row[col_index]= value
+
+                # Handle Attribute_Performance - some column values come from the top of A-P
+                # A-P is a list of dicts  but will have only one within any "item" in report_items
+                ### Note these should NOT be confused with report_header fields by these same names
+                attribute = item.get("Attribute_Performance", [])
+                attr_fields_list = ["Data_Type", "YOP", "Access_Method", "Access_Type"] # this is generic all possible fields from an A-P
+                ## Get the columns that both the list of possible attr fields AND the columns possible for this kind of report have
+                fields_to_add = list(set(attr_fields_list) & set(column_order_list))
+                # We have to empty out of row the values from a previous A-P block
+                for field in fields_to_add:
                     col_index = column_order_list.index(field)
-                    row[col_index]= value
+                    row[col_index] = ""
+                ### A-P is a list, an attribute is a dict, and a "performance" within an attribute is a dict
+                for attr in attribute:  ### usully just one (dict) per item but in theory could be more than one
+                    if 'Performance' not in attr: # in theory this should never happen but if it does, we skip this entire attr
+                        log_error(f'ERROR: There is no performance in this attribute block - this should never happen but we have to skip this attribute')
+                        continue
+                    if not isinstance(attr, dict):
+                        log_error(f'ERROR: ATTR is {type(attr)}. That should never happen - skipping this atttribute block\n')
+                        continue
+                    for field in fields_to_add: ## For each possible field that this particular report could have column for
+                        if field not in attr: ### now is this possible field also in our actual data
+                            continue
+                        ### If we've gotten here then we have an A-P key that is needed for this particular report
+                        ##### so we need to add that to our row
+                        ##### This field is definitely in this attr
+                        value = attr.get(field, '')
+                        col_index = column_order_list.index(field)
+                        row[col_index]= value
 
+                    performance = attr.get("Performance", {})
 
-                ## Performance is always a dict, with keys that are metric types, and values that are themselves dicts of key-value
-                ### eg. "Performance": { "Total_Item_Investigations": { "2025-03": 6 }, "Total_Item_Requests": { "2025-03": 6 } }
-
-                performance = attr.get("Performance", {})  
-
-                # We generate the Metric_Type and Year_Month column values from Performance
-                ### and then we can pull all of those Item, Item_ID, A-P data into the actual row
-                for metric_type, date_values in performance.items():
-                      ### First we have to empty out the row values for the year-month data
-                      #### but we want to keep the values for the A-P and item_id as they repeat through all of these Performance lines
-                      #### Metric_Type and Reporting_Period_Total will necessarily get overwritten below
-                      #### and the rest of the row values should be repeated for each performance line
-                      start_index = column_order_list.index("Reporting_Period_Total") # Start clearing column values from RPT through all of the year-months
-                      for i in range(start_index, len(row)):
-                          row[i] = ""
-                      # There will always be a Metric_Type column in every report
-                      col_index = column_order_list.index("Metric_Type")
-                      row[col_index] = metric_type
-                      # There will always be a Reporting_Period_Total column in every report
-                      # and its value is calculated here
-                      reporting_period_total = 0  # Initialize the total
-                      for item in column_order_list:
-                          if len(item) == 7 and item[4] == "-" and item[:4].isdigit() and item[5:].isdigit():
-                              col_index = column_order_list.index(item)
-                              row[col_index] = "0"
-                      for value in date_values.values():
-                          if value:  # Only add the value if it's not empty or None
-                              reporting_period_total += int(value)  # Convert the value to an integer and add it to the total
-                      col_index = column_order_list.index("Reporting_Period_Total")
-                      row[col_index] = reporting_period_total
-                      # Prepopulate all cells for the year-month columns with 0 because they can't be blank
-                      for year_month, value in date_values.items():
-                          col_index = column_order_list.index(year_month)  # Find the column index
-                          if isinstance(value,int):
-                              row[col_index]= str(value)
-                      # This is where we need to write out this row  before looping for the next metric type
-                      # Write output to TSV
-                      with open(tsv_full_path, "a", newline="", encoding="utf-8-sig") as f:
-                          writer = csv.writer(f, delimiter="\t")
-                          # Write table row (line 16 onward)
-                          writer.writerow(row)
+                    # We generate the Metric_Type and Year_Month column values from Performance
+                    ### and then we can pull all of those Item, Item_ID, A-P data into the actual row
+                    for metric_type, date_values in performance.items():
+                        ### First we have to empty out the row values for the year-month data
+                        #### but we want to keep the values for the A-P and item_id as they repeat through all of these Performance lines
+                        #### Metric_Type and Reporting_Period_Total will necessarily get overwritten below
+                        #### and the rest of the row values should be repeated for each performance line
+                        start_index = column_order_list.index("Reporting_Period_Total") # Start clearing column values from RPT through all of the year-months
+                        for i in range(start_index, len(row)):
+                            row[i] = ""
+                        # There will always be a Metric_Type column in every report
+                        col_index = column_order_list.index("Metric_Type")
+                        row[col_index] = metric_type
+                        # There will always be a Reporting_Period_Total column in every report
+                        # and its value is calculated here
+                        reporting_period_total = 0  # Initialize the total
+                        for item in column_order_list:
+                            if len(item) == 7 and item[4] == "-" and item[:4].isdigit() and item[5:].isdigit():
+                                col_index = column_order_list.index(item)
+                                row[col_index] = "0"
+                        for value in date_values.values():
+                            if value:  # Only add the value if it's not empty or None
+                                reporting_period_total += int(value)  # Convert the value to an integer and add it to the total
+                        col_index = column_order_list.index("Reporting_Period_Total")
+                        row[col_index] = reporting_period_total
+                        # Prepopulate all cells for the year-month columns with 0 because they can't be blank
+                        for year_month, value in date_values.items():
+                            col_index = column_order_list.index(year_month)  # Find the column index
+                            if isinstance(value,int):
+                                row[col_index]= str(value)
+                        # This is where we need to write out this row  before looping for the next metric type
+                        # Write output to TSV
+                        with open(tsv_full_path, "a", newline="", encoding="utf-8-sig") as f:
+                            writer = csv.writer(f, delimiter="\t")
+                            # Write table row (line 16 onward)
+                            writer.writerow(row)
 
         print(f"TSV file successfully created at: {tsv_full_path}")
+        #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
         return tsv_full_path
 
     except Exception as e:
+        #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
         print(f"An error occurred during the conversion: {e}\nThe tsv file  may not have been created properly.")
-        log_error(f"An error occurred during the conversion: {e}\nThe tsv file  may not have been created properly.")
+        log_error(f"ERROR: An error occurred during the conversion: {e}\nThe tsv file  may not have been created properly.")

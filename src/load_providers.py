@@ -26,6 +26,8 @@ def load_providers(file_path):
         header_indices = {header: index for index, header in enumerate(headers)}
 
         for row in reader:
+            if not ''.join(row).strip():# skip empty (or all whitespace) rows (might especially be at the end of the file)
+                continue
             # Ensure the row has at least the mandatory columns
             if len(row) < len(headers): # sometimes the providers data is missing the empty tabs for the Delay and Retry columns
                 row += [''] * (len(headers) - len(row))

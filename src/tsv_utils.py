@@ -21,6 +21,8 @@ IR_list_metric = ["Total_Item_Investigations","Total_Item_Requests","Unique_Item
 IR_A1_list_metric = ["Total_Item_Requests","Unique_Item_Requests"]
 IR_M1_list_metric = ["Total_Item_Requests","Unique_Item_Requests"]
 
+official_reports = ['DR', 'DR_EX', 'DR_D1', 'DR_D2', 'PR', 'PR_EX', 'PR_P1', 'TR', 'TR_EX', 'TR_J1', 'TR_J2', 'TR_J3', 'TR_J4', 'TR_B1', 'TR_B2', 'TR_B3', 'IR', 'IR_EX', 'IR_A1', 'IR_M1']
+
 default_metric_types = {
     "DR": DR_list_metric,
     "DR_EX": DR_list_metric,
@@ -263,26 +265,12 @@ IR_list = [
     "Publisher",
     "Publisher_ID",
     "Platform",
-    "Authors",
-    "Publication_Date",
-    "Article_Version",
     "DOI",
     "Proprietary_ID",
     "ISBN",
     "Print_ISSN",
     "Online_ISSN",
     "URI",
-    "Parent_Title",
-    "Parent_Authors",
-    "Parent_Publication_Date",
-    "Parent_Article_Version",
-    "Parent_Data_Type",
-    "Parent_DOI",
-    "Parent_Proprietary_ID",
-    "Parent_ISBN",
-    "Parent_Print_ISSN",
-    "Parent_Online_ISSN",
-    "Parent_URI",
     "Data_Type",
     "Metric_Type",
     "Reporting_Period_Total"
@@ -331,24 +319,18 @@ IR_A1_list = [
     "Article_Version",
     "DOI",
     "Proprietary_ID",
-    "ISBN",
     "Print_ISSN",
     "Online_ISSN",
     "URI",
     "Parent_Title",
     "Parent_Authors",
-    "Parent_Publication_Date",
     "Parent_Article_Version",
     "Parent_DOI",
     "Parent_Proprietary_ID",
-    "Parent_ISBN",
     "Parent_Print_ISSN",
     "Parent_Online_ISSN",
     "Parent_URI",
-    "Data_Type",
-    "YOP",
     "Access_Type",
-    "Access_Method",
     "Metric_Type",
     "Reporting_Period_Total"
 ]

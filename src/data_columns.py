@@ -2,15 +2,15 @@
 
 # List of column names for data insertion
 data_columns = [
+        "Row_Hash",  #not part of COUNTER data, needed for uniqueness of rows
         "Provider_Name",
         "Report_Type",
-        "Item_Name",
+        "Item",
         "Database_Name",
         "Access_Method",
         "Access_Type",
         "Article_Version",
         "Authors" ,
-        #"Header_ID",
         "Title",
         "Publisher",
         "Publisher_ID",
@@ -36,6 +36,17 @@ data_columns = [
         "Data_Month",
         "Metric_Usage",
         "Book_Segment_Count",
+         "Parent_Article_Version",
+        "Parent_Authors",
+        "Parent_Data_Type",
+        "Parent_DOI",
+        "Parent_ISBN",
+        "Parent_Online_ISSN",
+        "Parent_Print_ISSN",
+        "Parent_Proprietary_ID",
+        "Parent_Publication_Date",
+        "Parent_Title",
+        "Parent_URI"
         #"Component_Authors",
         #"Component_Data_Type",
         #"Component_DOI",
@@ -45,18 +56,8 @@ data_columns = [
         #"Component_Publication",
         #"Component_ISBN",
         #"Component_Title",
-        #"Component_URI",
-        "Parent_Article_Version",
-        "Parent_Authors",
-        "Parent_Data_Type",
-        "Parent_DOI",
-        "Parent_ISBN",
-        "Parent_Online_ISSN",
-        "Parent_Print_ISSN",
-        "Parent_Proprietary",
-        "Parent_Publication_Date",
-        "Parent_Title",
-        "Parent_URI"
+        #"Component_URI"
+
 ]
 
 # List of columns for SQLite create table statements (with types)

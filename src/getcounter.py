@@ -24,7 +24,7 @@ def json_to_sqlite(dict_providers):
         this_provider = dict_providers[provider_name]
         for report_id, report_url  in this_provider['Report_URLS'].items():
             #api_url = this_provider['Report_URLS'].get(report_id, 'Not available')  # use url for api
-            log_error(f"\nINFO: Retrieving report: {provider_name}: {report_id.upper()}: {report_url}")
+            log_error(f"\nINFO: Retrieving report: {provider_name}: {report_id.upper()}: \n{report_url}")
             print(f"Retrieving report: {provider_name}: {report_id.upper()}")
             process_item_details(this_provider,report_id,report_url)
 
@@ -36,11 +36,10 @@ if __name__ == "__main__":
     log_error(f'INFO: Start of program run: Current date and time: {current_time}')
     # Load providers data from providers.tsv
     providers = load_providers(providers_file)  
-
-    # Fetch the structured data using fetch_json
+    # Fetch the provider api url info using fetch_json
     providers_dict = fetch_json(providers)
     if providers_dict and isinstance(providers_dict, dict):
         json_to_sqlite(providers_dict)
     else:
-        log_error(f'Getcounter Failed to get the providers info from {providers_file}\n')
+        log_error(f'ERROR: Getcounter Failed to get the providers info from {providers_file}\n')
     print(f"Done all providers, all reports.\nCheck {error_log_file} for problems/reports that failed/exceptions")
