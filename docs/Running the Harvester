@@ -7,8 +7,11 @@ you just press Enter.
 You can of course enter other start and end dates, both in YYYY-MM format.
 It checks the date range available compared to your request and adjusts the range per provider to only include YYYY-MM that the provider supports (and tells you this in the console and the errorlog).
 
+May 12, 2025 Update: It will also ask if you want to get just one specific report or view (for all providers in the tsv file) or all of them.
+
 Then  it just runs until it's done. It puts some basic progress information in the running window, and will give special notice there for 
   problems that you probably want to know about, especially if a provider/report won't have the data you asked for.
+
 In python, errors that the program can catch and deal with and not have the whole program simply "crash" are called "Exceptions".
 Exceptions usually do mean giving up on the steps for that report or even entire provider, but usually don't end the program completely.
 
@@ -19,10 +22,11 @@ It always start by giving you all of the URLs for all of the report types for al
 see if it works, if there was a problem with it, and you can share that with the the providers tech support or anyone else you have helping you; just be aware that it contains all of
 your "credentials" and some people consider parts of that to be like "passwords" so think carefully about where you share it.
 The error log is simply a plain text file so if you want to save it for later analysis but keep running the Harvester with other providers, you can easily just make a copy of it wherever you want it.
+The error log also contains INFO and Warning lines that may help you, in addition to the ERROR lines that report a true problem, usually on the provider's side.
 
 These are the steps it goes through:
-1. read in all of your providers info
-2. for each provider, run the API command to get the list of reports that provider supports (eg a journals-only platform won't support TR_B1 which is for books)
-3. fetch the json for each supported report and save it into its own json file (see docs/files_and_folders)
-4. use that json to generate .tsv files just like you would have gotten interactively from the provider's own "institutional admin" website
-5. use that data again to populate/add to an sqlite database for using to run more complex searches than you can do in an individual spreadsheet (see docs/sqlite_database_info)
+1. read in all of your providers info<br>
+2. for each provider, run the API command to get the list of reports that provider supports (eg a journals-only platform won't support TR_B1 which is for books)<br>
+3. fetch the json for each supported report and save it into its own json file (see docs/files_and_folders)<br>
+4. use that json to generate .tsv files just like you would have gotten interactively from the provider's own "institutional admin" website<br>
+5. use that data again to populate/add to an sqlite database for using to run more complex searches than you can do in an individual spreadsheet (see docs/sqlite_database_info)<br>
