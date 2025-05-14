@@ -12,4 +12,6 @@ I am the sole creator and maintainer of this code. If anyone would be interested
 
 See the docs for more information.
 
+For more information about COUNTER Metrics and the reports, see the [Education section of COUNTER's website](https://www.countermetrics.org/education/)
+
 - Melissa Belvadi, librarian at the University of Prince Edward Island
