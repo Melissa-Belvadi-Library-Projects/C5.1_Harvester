@@ -1,4 +1,5 @@
 #####  Various constant values that you can change as you like
+
 sqlite_filename = 'counterdata.db'
 data_table = 'usage_data'
 error_log_file = 'errorlog.txt'
