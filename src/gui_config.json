@@ -1,0 +1,6 @@
+{
+  "harvester_script": "getcounter.py",
+  "working_directory": "/Users/danielodoom/Documents/C5.1_Harvester/src",
+  "output_format": "tsv",
+  "output_dir": ""
+}
