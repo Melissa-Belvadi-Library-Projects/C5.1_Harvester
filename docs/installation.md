@@ -1,3 +1,12 @@
+# Steps to get this running
+
+## Step 1 - Download the code into a folder on your hard drive that you plan to keep it all in:
+* Decide where on your hard drive you want all of this, the code and reports, to be stored. Everything will stay in that one folder/directory tree. For instance, you might want to make a folder within your "My Documents" called "COUNTER_Harvester" so create that. You can call it whatever you like.
+* On the repository starting page, find the green Code menu pulldown - open it then click on Download zip and save the file to the folder you created for it.
+* Unzip the downloaded zip file directly into that folder.
+  
+## Step 2 - Make sure you have Python3 and the required packages installed
+
 This is written entirely in python (python 3), so it will run on Windows, Mac, and Linux. It was developed and tested in Ubuntu Linux.
 
 Python is an "interpreted" language, which means you just need to make sure you have python3 and the required "packages' installed, 
@@ -28,12 +37,18 @@ Basic steps for that, all command lines when you are in the folder where you dow
 - source venv/bin/activate    - for Linux and Mac - every time you want to use the virtual environment, ie run the Harvester
 - venv\Scripts\activate        - for Windows - every time you want to use the virtual environment, ie run the Harvester
 
-The only setup you need to do after that is to configure the Harvester according to your needs:
-Look at the sushiconfig.py file and decide if you want to change any of the default settings.
-Do this before you run the Harvester for the first time.
+## Step 3 - set up the providers.tsv file with your site's COUNTER 5.1 information and (optional) change the sushiconfig.py values to what you want
+
+Look at the sushiconfig.py file and decide if you want to change any of the default settings. You can leave all of these alone if you like.
+The only ones really important to think about are 8-10.
+All of these options are explained in the sushiconfig-options.md file in the same folder as these instructions in the repository.
+
+If you are going to change any of the first seven ones, the ones that name things, make those changes before you run the Harvester for the first time.
 
 Then set up the providers.tsv file with the information about your providers and your credentials (eg customer_id, requestor_id, api_key).
 You can get the base_url and some information about how to get the rest from the [COUNTER Registry](https://registry.countermetrics.org/)
+
+You will find a template file you can download and use as your starting file called template_providers.tsv right here in docs where this installation doc is.
 
 You can maintain multiple providers.tsv files if you want to run the Harvester for just some providers sometimes. The program will always just
 add what it gets from the providers at the time you run it - it won't try to delete files or data from providers not currently in the tsv.
