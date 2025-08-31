@@ -79,7 +79,8 @@ def get_dates():
     return begin_date, end_date
 
 def get_report_type():
-    print(f'You can choose just one report type (eg TR_J1) or Enter for all of them. Type it in caps\n')
+    print(f"To harvest one report type, enter the report's ID (eg, TR_J1). To harvest all report types, press Enter:")
+    #print(f'You can choose just one report type (eg TR_J1) or Enter for all of them. Type it in caps\n')
     report_type = input("What report type: ").strip().upper()
     if not report_type:
         print(f'Retrieving all supported report types for your providers.\n\n')
@@ -331,13 +332,23 @@ def timedelay(provider_name,thisdelay):
 
 
 def fetch_json(providers):
-    begin_date, end_date = get_dates()
+    ### Replace below declaration when we are actually getting the selections from the GUI
+    ### the providers dict being passed was filtered for the user_selections vendor list already
+    user_selections = {
+        'start_date': "2025-01",
+        'end_date': "2025-08",
+        'reports': ['DR', 'IR', 'TR', 'PR']
+    }
+    begin_date = user_selections['start_date']
+    end_date = user_selections['end_date']
     print(f"\nBegin Date: {begin_date}, End Date: {end_date}\n")
 
     data_dict = {}  # Initialize as an empty dictionary for providers
-    report_type_one = None
-    report_type_one = get_report_type() # if user wants only one specific kind of COUNTER report
-
+    #user_selections['reports'].append(get_report_type())   ### this is for the CLI version to request a single report type
+    report_type_list = user_selections['reports'] # whatever the user selects in the GUI
+    if not report_type_list:
+        print("You did not select any report types.\n")
+        return None
 
     for provider in providers:
         provider_info ={}
@@ -437,7 +448,7 @@ def fetch_json(providers):
                 log_error(f'ERROR: get_json_data failed fatally not specific to this url,{report_json_url}, which means skip this entire provider\n')
                 continue #try the next provider
 
-            # Now we can process the list of  reports
+            # Now we can process the list of reports
             # Loop through the list of reports supported as returned by get_json_data to create all URLs for supported reports
             #  Need to figure out where custom reports will fit into this           if is_custom_report(provider_info, report_type)
             if isinstance(report_json, list):  # this must be the supported_reports api response
@@ -446,9 +457,8 @@ def fetch_json(providers):
                         log_error(f"ERROR: No_report_id: a report from {provider_name} does not contain Report_ID\n")
                         continue
                     report_id = report.get('Report_ID')
-                    if report_type_one:
-                        if report_id != report_type_one:
-                            continue # skip to the next report in the list for this provider
+                    if report_id not in report_type_list:
+                        continue # skip to the next report in the list available from this provider that is also in the user_selections vendors list
                     if platform:## this is the providers.tsv platform, NOT the Platform Report meaning of platform
                         get_report_url_credentials = f'{base_url}{report_id.lower()}?{credentials}&platform={platform}'
                     else:
@@ -477,13 +487,15 @@ def fetch_json(providers):
                         b = begin_date
                     if not validate_date(last_month):
                         e = end_date
+                    ### Note that begin and end dates start as yyyy-mm but for the API call, they need to be yyyy-mm-dd
+                    ###  eg begin 2025-01-01 and end 2025-12-31 or whatever is the last valid date in that month, eg 2025-02-28
                     b = get_dd(b,"begin")
                     e = get_dd(e, "end")
                     provider_info['Dates'] = f"{b}-{e}"
                     # Append begin and end dates
                     ### For the master reports we will get them twice - the primary one will have the default attributes to show,
-                    #### and the "extra" one will have more attributes to show for maximizing the data collection for the database
-                    #### this program will invent its own "standard view" for this: TR_EX, DR_EX, etc.
+                    ### and the "extra" one will have more attributes to show for maximizing the data collection for the database
+                    ### this program will invent its own "standard view" for this: TR_EX, DR_EX, etc.
 
                     get_report_url_daterange = f"{get_report_url_credentials}&begin_date={b}&end_date={e}"
                     # Maximize all possible additional data breakdowns using attributes_to_show

@@ -25,6 +25,14 @@ def load_providers(file_path):
 
         header_indices = {header: index for index, header in enumerate(headers)}
 
+        ### Temporary as we merge the gui code in here  - remove this declaration when we are passing it from the gui
+        user_selections = {
+            'start_date': "2025-01",
+            'end_date': "2025-08",
+            'reports': ['DR', 'IR', 'TR', 'PR'],
+            'vendors': ['EBSCO']
+        }
+
         for row in reader:
             if not ''.join(row).strip():# skip empty (or all whitespace) rows (might especially be at the end of the file)
                 continue
@@ -32,6 +40,8 @@ def load_providers(file_path):
             if len(row) < len(headers): # sometimes the providers data is missing the empty tabs for the Delay and Retry columns
                 row += [''] * (len(headers) - len(row))
             if 'Name' in header_indices:
+                if row[header_indices['Name']] not in user_selections['vendors']:  #not a vendor that the user selected in the GUI
+                    continue
                 provider_name = row[header_indices['Name']]
             else:
                 log_error(f'No provider name - skipping {row}')
@@ -58,7 +68,11 @@ def load_providers(file_path):
                 'Delay': row[header_indices.get('Delay')] if 'Delay' in header_indices else '',
                 'Retry': row[header_indices.get('Retry')] if 'Retry' in header_indices else ''
             }
-            providers.append(provider)
+            ### Temporary as we merge the gui code in here
+            ### Remove the next line when we are actually populating the user_selections['vendors'] list from the gui
+            user_selections['vendors'].append(provider['Name'])
+            if provider['Name'] in user_selections['vendors']: ### Skip the ones the user doesn't want to use this run - from the GUI
+                providers.append(provider)
 
     return providers
 
