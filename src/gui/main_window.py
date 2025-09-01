@@ -20,10 +20,12 @@ from .utils.validation import DateValidator
 
 
 class SushiHarvesterGUI(QMainWindow):
+
     """
     Main application window class.
     Inherits from QMainWindow to get menu bar, status bar, and toolbar support.
     """
+
 
     def __init__(self):
         """
@@ -62,7 +64,7 @@ class SushiHarvesterGUI(QMainWindow):
         self.date_selector = DateSelector(self.config_data)
         main_layout.addWidget(self.date_selector)  # Add to main layout
 
-        # Line 51-61: Selection Section (Report Types and Providers)
+        # Selection Section (Report Types and Providers)
         selection_layout = QHBoxLayout()  # Horizontal layout for side-by-side widgets
 
         # List of available COUNTER report types
@@ -88,7 +90,7 @@ class SushiHarvesterGUI(QMainWindow):
         button_layout = QHBoxLayout()
 
         # START button on the left
-        self.start_button = QPushButton("START")
+        self.start_button = QPushButton("Start")
         self.start_button.setFont(QFont("Arial", 14, QFont.Weight.Bold))
         self.start_button.clicked.connect(self.on_start)  # Connect to handler function
         button_layout.addWidget(self.start_button)
@@ -136,27 +138,29 @@ class SushiHarvesterGUI(QMainWindow):
         exit_action.triggered.connect(self.close)  # Close application
         file_menu.addAction(exit_action)
 
-        # Line 109-113: Help Menu
+        # Help Menu
         help_menu = menubar.addMenu('Help')
         about_action = QAction('About', self)
         about_action.triggered.connect(self.show_about)
         help_menu.addAction(about_action)
 
     def load_vendors(self):
+
         """
         Loads vendor/provider list from TSV configuration files.
         Returns list of vendor names for the selection widget.
         """
+
         vendors = []  # Initialize empty list
 
-        # Line 121: Get providers file name from configuration
+        #Gets providers file name from configuration
         providers_file = self.config_data.get('providers_file', 'providers.tsv')
 
-        # Line 123-124: Define search locations for provider files
+        # Define search locations for provider files
         search_paths = [Path.cwd(), Path.cwd().parent / "registry_harvest"]
         config_files = [providers_file, 'registry-entries-2025-05-03.tsv']
 
-        # Line 126-140: Search for and load provider files
+        # Search for and load provider files
         for path in search_paths:  # Try each search location
             for config_file in config_files:  # Try each potential filename
                 full_path = path / config_file
@@ -175,7 +179,7 @@ class SushiHarvesterGUI(QMainWindow):
                     except Exception:  # If file reading fails, continue searching
                         continue
 
-        # Line 141: Fallback if no vendor file found
+        # Fallback if no vendor file found
         return ["Sample Provider 1", "Sample Provider 2", "EBSCO", "ProQuest", "Springer"]
 
     def on_start(self):
@@ -183,7 +187,7 @@ class SushiHarvesterGUI(QMainWindow):
         Handler for START button click.
         Validates inputs and launches the harvester.
         """
-        # Line 148-154: Validate user selections before proceeding
+        #Validate user selections before proceeding
         validator = DateValidator()
 
         if not validator.validate_selections(
@@ -193,7 +197,7 @@ class SushiHarvesterGUI(QMainWindow):
         ):
             return  # Exit if validation fails
 
-        # Line 156-162: Build configuration for harvester
+        #Build configuration for harvester
         user_selections = {
             'start_date': self.date_selector.get_start_date(),
             'end_date': self.date_selector.get_end_date(),
@@ -201,7 +205,7 @@ class SushiHarvesterGUI(QMainWindow):
             'vendors': self.vendor_frame.get_selected()
         }
 
-        # Line 164-166: Create and show progress dialog
+        #Create and show progress dialog
         progress_dialog = ProgressDialog(self)
         progress_dialog.start_harvester(user_selections)
         progress_dialog.exec()  # Show as modal dialog
@@ -211,11 +215,11 @@ class SushiHarvesterGUI(QMainWindow):
         Opens the settings configuration dialog.
         Handles configuration changes and UI updates.
         """
-        # Line 173-174: Create and show settings dialog
+        #Create and show settings dialog
         dialog = SushiConfigDialog(self)
         result = dialog.exec()
 
-        # Line 176-184: Handle settings changes if user clicked Save
+        # Handle settings changes if user clicked Save
         if result == QDialog.DialogCode.Accepted:
             old_config = self.config_data.copy()  # Backup old config
             self.config_data = self.config_manager.load_config()  # Reload config
@@ -233,11 +237,11 @@ class SushiHarvesterGUI(QMainWindow):
         Reloads the vendor list when provider configuration changes.
         Updates the vendor selection widget with new data.
         """
-        # Line 192-193: Load new vendor list and update widget
+        # Load new vendor list and update widget
         vendors = self.load_vendors()
         self.vendor_frame.update_items(vendors)
 
-        # Line 195-196: Show status message to user
+        # Show status message to user
         providers_file = self.config_data.get('providers_file', 'providers.tsv')
         self.status_bar.showMessage(f"Reloaded {len(vendors)} providers from {providers_file}", 3000)
 
@@ -245,11 +249,11 @@ class SushiHarvesterGUI(QMainWindow):
         """
         Opens the vendor management dialog for editing provider configurations.
         """
-        # Line 202-203: Create and show vendor management dialog
+        # Create and show vendor management dialog
         dialog = VendorManagementDialog(self, self.config_data)
         result = dialog.exec()
 
-        # Line 205-211: Handle vendor changes if user saved modifications
+        # Handle vendor changes if user saved modifications
         if result == QDialog.DialogCode.Accepted:
             self.reload_vendors()  # Refresh vendor list
             QMessageBox.information(
@@ -261,14 +265,14 @@ class SushiHarvesterGUI(QMainWindow):
         """
         Shows help information (placeholder implementation).
         """
-        # Line 217: Simple message box for help
+        # Simple message box for help
         QMessageBox.information(self, "Help", "Help documentation coming soon...")
 
     def show_about(self):
         """
         Shows application about dialog.
         """
-        # Line 222-226: About dialog with application information
+        # About dialog with application information
         QMessageBox.about(self, "About",
                           "SUSHI Harvester GUI\n\n"
                           "A tool for collecting COUNTER usage statistics\n"
