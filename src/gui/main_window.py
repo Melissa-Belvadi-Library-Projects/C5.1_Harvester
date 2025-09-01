@@ -3,8 +3,7 @@ import csv
 from pathlib import Path
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QGridLayout, QLabel, QPushButton, QGroupBox, QMenuBar,
-    QStatusBar, QMessageBox, QDialog
+    QGridLayout, QLabel, QPushButton, QGroupBox, QMenuBar,QMessageBox, QDialog
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QAction
@@ -86,40 +85,61 @@ class SushiHarvesterGUI(QMainWindow):
         # Add the selection section to main layout
         main_layout.addLayout(selection_layout)
 
-        # Button Section
-        button_layout = QHBoxLayout()
+        # === First Button Row ===
+        first_button_layout = QHBoxLayout()
 
-        # START button on the left
-        self.start_button = QPushButton("Start")
+        # Help button on far left
+        self.help_button = QPushButton("HELP")
+        self.help_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+        self.help_button.clicked.connect(self.show_help)
+        first_button_layout.addWidget(self.help_button)
+
+        # Stretch to center the Start button
+        first_button_layout.addSpacing(355)
+
+        # Start button in center
+        self.start_button = QPushButton("Start Harvest")
         self.start_button.setFont(QFont("Arial", 14, QFont.Weight.Bold))
-        self.start_button.clicked.connect(self.on_start)  # Connect to handler function
-        button_layout.addWidget(self.start_button)
+        self.start_button.clicked.connect(self.on_start)
+        first_button_layout.addWidget(self.start_button)
 
-        # Add stretch to push other buttons to the right
-        button_layout.addStretch()
+        # Stretch to push right buttons to far right
+        first_button_layout.addStretch()
 
-        # Right-aligned buttons
+        # Right-aligned buttons grouped together
         self.vendors_button = QPushButton("MANAGE PROVIDERS")
         self.vendors_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
         self.vendors_button.clicked.connect(self.show_vendors)
-        button_layout.addWidget(self.vendors_button)
+        first_button_layout.addWidget(self.vendors_button)
+
+        # Small spacing between the two right buttons
+        first_button_layout.addSpacing(10)
 
         self.settings_button = QPushButton("SETTINGS")
         self.settings_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
         self.settings_button.clicked.connect(self.open_settings)
-        button_layout.addWidget(self.settings_button)
+        first_button_layout.addWidget(self.settings_button)
 
-        self.help_button = QPushButton("HELP")
-        self.help_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-        self.help_button.clicked.connect(self.show_help)
-        button_layout.addWidget(self.help_button)
+        # Add first button row to main layout
+        main_layout.addLayout(first_button_layout)
 
-        main_layout.addLayout(button_layout)
+        # Add some vertical spacing between button rows
+        main_layout.addSpacing(10)
 
-        # Status Bar
-        self.status_bar = QStatusBar()
-        self.status_bar.showMessage("Ready")  # Initial status message
-        self.setStatusBar(self.status_bar)  # Attach to main window
+        # === Second Button Row (Exit Button) ===
+        second_button_layout = QHBoxLayout()
+
+        # Push Exit button to far right
+        second_button_layout.addStretch()
+
+        self.exit_button = QPushButton("EXIT")
+        self.exit_button.setFont(QFont("Arial", 11, QFont.Weight.Bold))
+        self.exit_button.clicked.connect(self.close)
+        second_button_layout.addWidget(self.exit_button)
+
+        # Add second button row to main layout
+        main_layout.addLayout(second_button_layout)
+
 
     def create_menu_bar(self):
         """
@@ -241,9 +261,8 @@ class SushiHarvesterGUI(QMainWindow):
         vendors = self.load_vendors()
         self.vendor_frame.update_items(vendors)
 
-        # Show status message to user
-        providers_file = self.config_data.get('providers_file', 'providers.tsv')
-        self.status_bar.showMessage(f"Reloaded {len(vendors)} providers from {providers_file}", 3000)
+
+
 
     def show_vendors(self):
         """
@@ -260,6 +279,7 @@ class SushiHarvesterGUI(QMainWindow):
                 self, "Providers Updated",
                 "Provider list has been updated. The changes will be used in future harvester runs."
             )
+
 
     def show_help(self):
         """

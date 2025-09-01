@@ -1,59 +1,59 @@
 Name	Base_URL	Customer_ID	Requestor_ID	API_Key	Platform	Version	Delay	Retry
-AAAS	https://www.science.org/r51	20351555	collections@upei.ca			5.1
-Aclands_Anatomy	https://sitemaster.lwwhealthlibrary.com/sushi/r51	174928	8334342	230952bf-76a2-41ac-8ebf-ff48b656ccea		5.1
-ACM_Digital_Library	https://dl.acm.org/r51	3659542	collections@upei.ca			5.1
-ACS	https://pubs.acs.org/r51	2298202	collections@upei			5.1
-Allen_Press	https://sitemaster.meridian.allenpress.com/sushi/r51	19464	97554	60ee86d9-df1d-45a1-9f33-9afdd2a49716		5.1
-Annual_Reviews	https://www.annualreviews.org/counter5/sushi/r51	106712	106712			5.1
-APS-Amer._Physiological_Society	https://journals.physiology.org/r51	00015659	collections@upei.ca			5.1	1
-ARRS	https://www.ajronline.org/r51	638004	MB731034			5.1
-ASM_American_Society_for_Microbiology	https://journals.asm.org/r51	140856	collections@upei.ca			5.1
-ASME	https://sitemaster.asmedigitalcollection.asme.org/sushi/r51	3217	128450	b84b60d6-780a-406a-8c7b-b1a2e57f44f4		5.1
-AVMA	https://sushi5.scholarlyiq.com/counter/r51	avma-prod_475	bdc9070f-668d-48ee-b9ad-e76b0d1b3ae5			5.1	5
-Bates_Videos	https://sitemaster.lwwhealthlibrary.com/sushi/r51	134573	7782989	53663e2f-4f6d-450d-95a7-e04f1219f589		5.1
-BIOONE	https://sushi5.scholarlyiq.com/counter/r51	512B6680-A058-E811-80C8-005056B9C586	af8ddc2f-c5b5-42cb-96f6-ad6b557bccd9			5.1	5
-Brill	https://sushi5.scholarlyiq.com/counter/r51	brill-prod_5923	c11b7f59-3b8b-4b2c-b382-1b2428e91c5d	FWjEKsp1%2BocRWaQuwvySMw%3D%3D		5.1	5
-CABI	https://cabidigitallibrary.org/r51	59221	collections@upei.ca			5.1
-Cambridge-Core	https://counter5.cambridge.org/r51	8a94032b5413f999015414009bdc0d1c	8a94032b5413f999015414009bdc0d1c			5.1
-Canadian_Science_Publishing	https://cdnsciencepub.com/r51	51861-2359-csp	collections@upei.ca			5.1
-Docuseek	https://docuseek2.com/counter/r51	HSp		fa4a4703f8baa138ad0c02c480195e7e		5.1
-Duke-Euclid	https://sitemaster.read.dukeupress.edu/sushi/r51	530	567	4096d86a-7bbf-4b35-8c49-15b100dda14f	Silverchair	5.1
-EBSCO	https://sushi.ebscohost.com/r51	uprince	4b7786f8-87f4-4690-b3a3-3f644dd309fd			5.1
-Edward_Elgar	https://sushi5.scholarlyiq.com/counter/r51	eep-prod_15264	a70011da-e9a9-4c7e-ba53-075c26afd654			5.1	5
+AAAS	https://www.science.org/r51	20351555	collections@upei.ca			5.1		
+Aclands_Anatomy	https://sitemaster.lwwhealthlibrary.com/sushi/r51	174928	8334342	230952bf-76a2-41ac-8ebf-ff48b656ccea		5.1		
+ACM_Digital_Library	https://dl.acm.org/r51	3659542	collections@upei.ca			5.1		
+ACS	https://pubs.acs.org/r51	2298202	collections@upei			5.1		
+Allen_Press	https://sitemaster.meridian.allenpress.com/sushi/r51	19464	97554	60ee86d9-df1d-45a1-9f33-9afdd2a49716		5.1		
+Annual_Reviews	https://www.annualreviews.org/counter5/sushi/r51	106712	106712			5.1		
+APS-Amer._Physiological_Society	https://journals.physiology.org/r51	00015659	collections@upei.ca			5.1	1	
+ARRS	https://www.ajronline.org/r51	638004	MB731034			5.1		
+ASM_American_Society_for_Microbiology	https://journals.asm.org/r51	140856	collections@upei.ca			5.1		
+ASME	https://sitemaster.asmedigitalcollection.asme.org/sushi/r51	3217	128450	b84b60d6-780a-406a-8c7b-b1a2e57f44f4		5.1		
+AVMA	https://sushi5.scholarlyiq.com/counter/r51	avma-prod_475	bdc9070f-668d-48ee-b9ad-e76b0d1b3ae5			5.1	5	
+Bates_Videos	https://sitemaster.lwwhealthlibrary.com/sushi/r51	134573	7782989	53663e2f-4f6d-450d-95a7-e04f1219f589		5.1		
+BIOONE	https://sushi5.scholarlyiq.com/counter/r51	512B6680-A058-E811-80C8-005056B9C586	af8ddc2f-c5b5-42cb-96f6-ad6b557bccd9			5.1	5	
+Brill	https://sushi5.scholarlyiq.com/counter/r51	brill-prod_5923	c11b7f59-3b8b-4b2c-b382-1b2428e91c5d	FWjEKsp1%2BocRWaQuwvySMw%3D%3D		5.1	5	
+CABI	https://cabidigitallibrary.org/r51	59221	collections@upei.ca			5.1		
+Cambridge-Core	https://counter5.cambridge.org/r51	8a94032b5413f999015414009bdc0d1c	8a94032b5413f999015414009bdc0d1c			5.1		
+Canadian_Science_Publishing	https://cdnsciencepub.com/r51	51861-2359-csp	collections@upei.ca			5.1		
+Docuseek	https://docuseek2.com/counter/r51	HSp		fa4a4703f8baa138ad0c02c480195e7e		5.1		
+Duke-Euclid	https://sitemaster.read.dukeupress.edu/sushi/r51	530	567	4096d86a-7bbf-4b35-8c49-15b100dda14f	Silverchair	5.1		
+EBSCO	https://sushi.ebscohost.com/r51	uprince	4b7786f8-87f4-4690-b3a3-3f644dd309fd			5.1		
+Edward_Elgar	https://sushi5.scholarlyiq.com/counter/r51	eep-prod_15264	a70011da-e9a9-4c7e-ba53-075c26afd654			5.1	5	
 Elsevier-EngVillage	https://api.elsevier.com/sushi/r51	C000051268	06c54d0bf8c3633fa96dd708a31e5162	679436ea8881e0bd6072f6f37c1ce69b	ev	5.1		5
 Elsevier-SciDirect	https://api.elsevier.com/sushi/r51	C000051268	06c54d0bf8c3633fa96dd708a31e5162	679436ea8881e0bd6072f6f37c1ce69b	sd	5.1		5
 ELSEVIER-Scopus	https://api.elsevier.com/sushi/r51	C000051268	06c54d0bf8c3633fa96dd708a31e5162	679436ea8881e0bd6072f6f37c1ce69b	sc	5.1		5
-GALE	https://api.siqcloud.online/counterapi/r51	library:otta0998	otta0998/otta0998	0518d6974ad3435283e77e6cb3f637ff	gale	5.1	5
-GeoScienceWorld	https://sitemaster.geoscienceworld.org/sushi/r51	2320	15359	2d3422e9-04c5-448b-bb62-811f4ad3a1ee		5.1
-Healio_Slack	https://journals.healio.com/r51	UNIV OF P E I	collections@upei.ca			5.1
-Informit	https://search.informit.org/r51	c39cd102-7279-4ba0-8828-53d50f6cd8fb	collections@upei.ca			5.1
-Ingenta_Connect	https://www.ingentaconnect.com/sushiadmin/statistics/sushi/r51	peican	10832c48c658cb16			5.1
-JAMA	https://sitemaster.jamanetwork.com/sushi/r51	35310	1745359	1e7b5a81-d77c-45b7-94c6-c0d8d08ff05e		5.1
+GALE	https://api.siqcloud.online/counterapi/r51	library:otta0998	otta0998/otta0998	0518d6974ad3435283e77e6cb3f637ff	gale	5.1	5	
+GeoScienceWorld	https://sitemaster.geoscienceworld.org/sushi/r51	2320	15359	2d3422e9-04c5-448b-bb62-811f4ad3a1ee		5.1		
+Healio_Slack	https://journals.healio.com/r51	UNIV OF P E I	collections@upei.ca			5.1		
+Informit	https://search.informit.org/r51	c39cd102-7279-4ba0-8828-53d50f6cd8fb	collections@upei.ca			5.1		
+Ingenta_Connect	https://www.ingentaconnect.com/sushiadmin/statistics/sushi/r51	peican	10832c48c658cb16			5.1		
+JAMA	https://sitemaster.jamanetwork.com/sushi/r51	35310	1745359	1e7b5a81-d77c-45b7-94c6-c0d8d08ff05e		5.1		
 JSTOR	https://www.jstor.org/sushi/r51	upei.ca	collections@upei.ca			5.1	5	5
-Mark-Allen-Group	https://www.magonlinelibrary.com/r51	279322	collections@upei.ca			5.1
-Mary-Ann-Liebert	https://www.liebertpub.com/r51	8252134	collections@upei.ca			5.1
-Microbiology_Society	https://www.microbiologyresearch.org/counter5/sushi/r51	sgid023870	70e8f980bc5e04dd292392e09bcd4428			5.1
-MIT-Press	https://sitemaster.direct.mit.edu/sushi/r51	491	3161	9f167ca2-ec36-4c3d-981c-2cbe4ed128a2		5.1
-NEJM	https://www.nejm.org/r51	4391	collections@upei.ca			5.1
-Oxford_Academic	https://sushi5.scholarlyiq.com/counter/r51	22482622	ed931eb2-1f61-4206-9e80-ff147cc0311b			5.1	5
-Philosophy-Documentation-Centre	https://sushi5.scholarlyiq.com/counter/r51	4154946	d2a37560-1c9b-4e1f-979a-98d541942ea1			5.1	5
-PNAS	https://www.pnas.org/r51	PR447048	collections@upei.ca			5.1
-Proquest_Journals	https://sushi.proquest.com/counter/r51	14670		88V3INVJ9FOZ0JZV		5.1
-PsychiatryOnline	https://psychiatryonline.org/r51	297459	collections@upei.ca			5.1
-Royal_society_publishing	https://royalsocietypublishing.org/r51	CU-0735144	collections@upei.ca			5.1
-Sage_books	https://securecenter.sagepub.com/SushiService/r51	21063	mLsZOFydEoFYd/eEqBHJpg			5.1
-Sage_journals	https://journals.sagepub.com/r51	1000451523	collections@upei.ca			5.1
-Springer-AdisInsight	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	AdisInsight	5.1
-Springer-BMC	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	BMC	5.1
-Springer-Link	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	SpringerNatureLink	5.1
-Springer-Materials	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	SpringerMaterials	5.1
-Springer-Nature	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	nature.com	5.1
-Springer-NatureAsia	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	NatureAsia	5.1
-Springer-ResearchGate	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	SYNDICATED:ResearchGate	5.1
-Springer-SciAm	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	ScientificAmerican	5.1
-Statista	https://sushi.statista.com/r51	443654	443654	088b6472-4a30-468f-bfbb-daa46cfc5fbf		5.1
-Taylor_&_Francis_books	http://api.taylorandfrancis.com/v2/counterreports/r51	101779	collections@upei.ca			5.1
-Taylor_&_Francis_journals	https://www.tandfonline.com/r51	1453391	collections@upei.ca			5.1
-University_of_Chicago	https://www.journals.uchicago.edu/r51	117870	collections@upei.ca			5.1
-University-of-Toronto	https://utppublishing.com/r51	101005	upei			5.1
-Wiley	https://onlinelibrary.wiley.com/r51	EAL0001369	collections@upei.ca			5.1
+Mark-Allen-Group	https://www.magonlinelibrary.com/r51	279322	collections@upei.ca			5.1		
+Mary-Ann-Liebert	https://www.liebertpub.com/r51	8252134	collections@upei.ca			5.1		
+Microbiology_Society	https://www.microbiologyresearch.org/counter5/sushi/r51	sgid023870	70e8f980bc5e04dd292392e09bcd4428			5.1		
+MIT-Press	https://sitemaster.direct.mit.edu/sushi/r51	491	3161	9f167ca2-ec36-4c3d-981c-2cbe4ed128a2		5.1		
+NEJM	https://www.nejm.org/r51	4391	collections@upei.ca			5.1		
+Oxford_Academic	https://sushi5.scholarlyiq.com/counter/r51	22482622	ed931eb2-1f61-4206-9e80-ff147cc0311b			5.1	5	
+Philosophy-Documentation-Centre	https://sushi5.scholarlyiq.com/counter/r51	4154946	d2a37560-1c9b-4e1f-979a-98d541942ea1			5.1	5	
+PNAS	https://www.pnas.org/r51	PR447048	collections@upei.ca			5.1		
+Proquest_Journals	https://sushi.proquest.com/counter/r51	14670		88V3INVJ9FOZ0JZV		5.1		
+PsychiatryOnline	https://psychiatryonline.org/r51	297459	collections@upei.ca			5.1		
+Royal_society_publishing	https://royalsocietypublishing.org/r51	CU-0735144	collections@upei.ca			5.1		
+Sage_books	https://securecenter.sagepub.com/SushiService/r51	21063	mLsZOFydEoFYd/eEqBHJpg			5.1		
+Sage_journals	https://journals.sagepub.com/r51	1000451523	collections@upei.ca			5.1		
+Springer-AdisInsight	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	AdisInsight	5.1		
+Springer-BMC	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	BMC	5.1		
+Springer-Link	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	SpringerNatureLink	5.1		
+Springer-Materials	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	SpringerMaterials	5.1		
+Springer-Nature	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	nature.com	5.1		
+Springer-NatureAsia	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	NatureAsia	5.1		
+Springer-ResearchGate	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	SYNDICATED:ResearchGate	5.1		
+Springer-SciAm	https://counter.public.springernature.app/r51	3000162182		Yd84kELG6dRbqQdu3cWZpDCWW9CNwHfF	ScientificAmerican	5.1		
+Statista	https://sushi.statista.com/r51	443654	443654	088b6472-4a30-468f-bfbb-daa46cfc5fbf		5.1		
+Taylor_&_Francis_books	http://api.taylorandfrancis.com/v2/counterreports/r51	101779	collections@upei.ca			5.1		
+Taylor_&_Francis_journals	https://www.tandfonline.com/r51	1453391	collections@upei.ca			5.1		
+University_of_Chicago	https://www.journals.uchicago.edu/r51	117870	collections@upei.ca			5.1		
+University-of-Toronto	https://utppublishing.com/r51	101005	upei			5.1		
+Wiley	https://onlinelibrary.wiley.com/r51	EAL0001369	collections@upei.ca			5.1		
