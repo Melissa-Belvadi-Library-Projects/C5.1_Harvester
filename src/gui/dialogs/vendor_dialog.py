@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
+from PyQt6.QtWidgets import QAbstractItemView
 
 
 class VendorManagementDialog(QDialog):
@@ -70,7 +71,7 @@ class VendorManagementDialog(QDialog):
         left_layout.addWidget(list_label)
 
         self.vendor_list = QListWidget()
-        self.vendor_list.itemClicked.connect(self.on_vendor_selected)
+        self.vendor_list.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         left_layout.addWidget(self.vendor_list)
 
         # Buttons for list management - centered
@@ -339,13 +340,11 @@ class VendorManagementDialog(QDialog):
         help_url = "https://github.com/Melissa-Belvadi-Library-Projects/C5.1_Harvester/blob/main/docs/Running%20the%20Harvester.md"
 
         reply = QMessageBox.question(
-            self, "Provider Management Help",
-            "Open provider management documentation?\n\n"
-            "This will explain:\n"
-            "• How to add new providers\n"
-            "• Required fields and credentials\n"
-            "• Provider-specific settings\n"
-            "Open in browser?",
+            self,
+            "Provider Management Help",
+            "<b>Provider Help</b><br><br>"
+            "This will open your web browser.<br>"
+            "Do you want to continue?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
 
