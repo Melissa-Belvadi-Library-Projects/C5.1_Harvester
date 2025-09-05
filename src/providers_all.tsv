@@ -21,7 +21,7 @@ Duke-Euclid	https://sitemaster.read.dukeupress.edu/sushi/r51	530	567	4096d86a-7b
 EBSCO	https://sushi.ebscohost.com/r51	uprince	4b7786f8-87f4-4690-b3a3-3f644dd309fd			5.1		
 Edward_Elgar	https://sushi5.scholarlyiq.com/counter/r51	eep-prod_15264	a70011da-e9a9-4c7e-ba53-075c26afd654			5.1	5	
 Elsevier-EngVillage	https://api.elsevier.com/sushi/r51	C000051268	06c54d0bf8c3633fa96dd708a31e5162	679436ea8881e0bd6072f6f37c1ce69b	ev	5.1		5
-Elsevier-SciDirect	https://api.elsevier.com/sushi/r51	C000051268	06c54d0bf8c3633fa96dd708a31e5162	679436ea8881e0bd6072f6f37c1ce69b	sd	5.1		5
+Elsevier-SciDirect	https://api.elsevier.com/sushi/r51	C000051268	06c54d0bf8c3633fa96dd708a31e5162	679436ea8881e0bd6072f6f37c1ce69b		5.1		5
 ELSEVIER-Scopus	https://api.elsevier.com/sushi/r51	C000051268	06c54d0bf8c3633fa96dd708a31e5162	679436ea8881e0bd6072f6f37c1ce69b	sc	5.1		5
 GALE	https://api.siqcloud.online/counterapi/r51	library:otta0998	otta0998/otta0998	0518d6974ad3435283e77e6cb3f637ff	gale	5.1	5	
 GeoScienceWorld	https://sitemaster.geoscienceworld.org/sushi/r51	2320	15359	2d3422e9-04c5-448b-bb62-811f4ad3a1ee		5.1		
@@ -56,4 +56,5 @@ Taylor_&_Francis_books	http://api.taylorandfrancis.com/v2/counterreports/r51	101
 Taylor_&_Francis_journals	https://www.tandfonline.com/r51	1453391	collections@upei.ca			5.1		
 University_of_Chicago	https://www.journals.uchicago.edu/r51	117870	collections@upei.ca			5.1		
 University-of-Toronto	https://utppublishing.com/r51	101005	upei			5.1		
-Wiley	https://onlinelibrary.wiley.com/r51	EAL0001369	collections@upei.ca			5.1		
+Wiley	https://onlinelibrary.wiley.com/r51	EAL0001369	collections@upei.ca			5.1	4	5
+ssss	222	222				5.1		

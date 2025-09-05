@@ -3,7 +3,7 @@ import csv
 from pathlib import Path
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QGridLayout, QLabel, QPushButton, QGroupBox, QMenuBar,QMessageBox, QDialog
+    QGridLayout, QLabel, QPushButton, QGroupBox, QMessageBox, QDialog
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QAction
@@ -35,7 +35,7 @@ class SushiHarvesterGUI(QMainWindow):
         super().__init__()
 
         # Set window title and initial size/position
-        self.setWindowTitle("HARVESTER GUI")
+        self.setWindowTitle("COUNTER 5.1 Harvester")
         self.setGeometry(100, 100, 1000, 800)  # x, y, width, height
 
         # Load configuration before creating UI elements
@@ -55,8 +55,8 @@ class SushiHarvesterGUI(QMainWindow):
         self.setCentralWidget(central_widget)  # Tell QMainWindow this is the main content
         main_layout = QVBoxLayout(central_widget)  # Vertical layout manager
 
-        # Create menu bar (File, Help menus)
-        self.create_menu_bar()
+        # === NO MENU BAR ===
+        # The line self.create_menu_bar() has been removed here.
 
         # Date Range Selection Section
         # Create a date selector widget using our custom component
@@ -73,14 +73,16 @@ class SushiHarvesterGUI(QMainWindow):
             "TR_J1", "TR_J2", "TR_J3", "TR_J4"
         ]
 
-        # Create vendor frame for report type selection
-        self.report_frame = VendorFrame("Select Report Types", report_types)
-        selection_layout.addWidget(self.report_frame)
-
         # Load vendor list and create vendor selection frame
         vendors = self.load_vendors()
         self.vendor_frame = VendorFrame("Select Providers", vendors)
-        selection_layout.addWidget(self.vendor_frame)
+        selection_layout.addWidget(self.vendor_frame,2)
+
+        # Create vendor frame for report type selection
+        self.report_frame = VendorFrame("Select Report Types", report_types)
+        selection_layout.addWidget(self.report_frame, 1)
+
+
 
         # Add the selection section to main layout
         main_layout.addLayout(selection_layout)
@@ -88,26 +90,31 @@ class SushiHarvesterGUI(QMainWindow):
         # === First Button Row ===
         first_button_layout = QHBoxLayout()
 
+
         # Help button on far left
-        self.help_button = QPushButton("HELP")
+        self.help_button = QPushButton("Help")
         self.help_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
         self.help_button.clicked.connect(self.show_help)
         first_button_layout.addWidget(self.help_button)
 
-        # Stretch to center the Start button
-        first_button_layout.addSpacing(355)
+        # Replace fixed spacing with proportional stretch
+        #first_button_layout.addStretch()  # This creates proportional spacing
 
-        # Start button in center
-        self.start_button = QPushButton("Start Harvest")
+        first_button_layout.addSpacing(200)
+
+        # Start button
+        self.start_button = QPushButton("Start")
         self.start_button.setFont(QFont("Arial", 14, QFont.Weight.Bold))
         self.start_button.clicked.connect(self.on_start)
         first_button_layout.addWidget(self.start_button)
 
+
+
         # Stretch to push right buttons to far right
-        first_button_layout.addStretch()
+        first_button_layout.addStretch(3)  # This maintains the proportional balance
 
         # Right-aligned buttons grouped together
-        self.vendors_button = QPushButton("MANAGE PROVIDERS")
+        self.vendors_button = QPushButton("Manage providers")
         self.vendors_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
         self.vendors_button.clicked.connect(self.show_vendors)
         first_button_layout.addWidget(self.vendors_button)
@@ -115,7 +122,7 @@ class SushiHarvesterGUI(QMainWindow):
         # Small spacing between the two right buttons
         first_button_layout.addSpacing(10)
 
-        self.settings_button = QPushButton("SETTINGS")
+        self.settings_button = QPushButton("Settings")
         self.settings_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
         self.settings_button.clicked.connect(self.open_settings)
         first_button_layout.addWidget(self.settings_button)
@@ -124,7 +131,7 @@ class SushiHarvesterGUI(QMainWindow):
         main_layout.addLayout(first_button_layout)
 
         # Add some vertical spacing between button rows
-        main_layout.addSpacing(10)
+        main_layout.addSpacing(15)
 
         # === Second Button Row (Exit Button) ===
         second_button_layout = QHBoxLayout()
@@ -132,7 +139,7 @@ class SushiHarvesterGUI(QMainWindow):
         # Push Exit button to far right
         second_button_layout.addStretch()
 
-        self.exit_button = QPushButton("EXIT")
+        self.exit_button = QPushButton("Exit")
         self.exit_button.setFont(QFont("Arial", 11, QFont.Weight.Bold))
         self.exit_button.clicked.connect(self.close)
         second_button_layout.addWidget(self.exit_button)
@@ -140,29 +147,6 @@ class SushiHarvesterGUI(QMainWindow):
         # Add second button row to main layout
         main_layout.addLayout(second_button_layout)
 
-
-    def create_menu_bar(self):
-        """
-        Creates the application menu bar with File and Help menus.
-        """
-        # Get the menu bar from QMainWindow
-        menubar = self.menuBar()
-
-        #File Menu
-        file_menu = menubar.addMenu('File')
-        settings_action = QAction('Settings', self)  # Create menu item
-        settings_action.triggered.connect(self.open_settings)  # Connect to handler
-        file_menu.addAction(settings_action)
-        file_menu.addSeparator()  # Visual separator line
-        exit_action = QAction('Exit', self)
-        exit_action.triggered.connect(self.close)  # Close application
-        file_menu.addAction(exit_action)
-
-        # Help Menu
-        help_menu = menubar.addMenu('Help')
-        about_action = QAction('About', self)
-        about_action.triggered.connect(self.show_about)
-        help_menu.addAction(about_action)
 
     def load_vendors(self):
 
@@ -261,25 +245,17 @@ class SushiHarvesterGUI(QMainWindow):
         vendors = self.load_vendors()
         self.vendor_frame.update_items(vendors)
 
-
-
-
     def show_vendors(self):
-        """
-        Opens the vendor management dialog for editing provider configurations.
-        """
-        # Create and show vendor management dialog
+        """Opens the vendor management dialog for editing provider configurations."""
         dialog = VendorManagementDialog(self, self.config_data)
+        # The exec() method returns a QDialog.DialogCode
         result = dialog.exec()
 
-        # Handle vendor changes if user saved modifications
+        # Check if the dialog was closed by the user accepting the changes.
+        # The VendorManagementDialog calls self.accept() upon successful save and close.
         if result == QDialog.DialogCode.Accepted:
-            self.reload_vendors()  # Refresh vendor list
-            QMessageBox.information(
-                self, "Providers Updated",
-                "Provider list has been updated. The changes will be used in future harvester runs."
-            )
-
+            # If the dialog was accepted, reload the list of vendors in the main GUI.
+            self.reload_vendors()
 
     def show_help(self):
         """
@@ -294,6 +270,6 @@ class SushiHarvesterGUI(QMainWindow):
         """
         # About dialog with application information
         QMessageBox.about(self, "About",
-                          "SUSHI Harvester GUI\n\n"
+                          " Counter 5.1 Harvester GUI\n\n"
                           "A tool for collecting COUNTER usage statistics\n"
-                          "from database providers via SUSHI API.")
+                          "from database providers via COUNTER API.")

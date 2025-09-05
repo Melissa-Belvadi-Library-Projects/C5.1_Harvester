@@ -62,7 +62,8 @@ class VendorManagementDialog(QDialog):
                 self,
                 "Unsaved Changes",
                 "You have unsaved changes. Do you want to save them before closing?",
-                QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard | QMessageBox.StandardButton.Cancel
+
+                QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard
             )
 
             if reply == QMessageBox.StandardButton.Save:
@@ -87,7 +88,7 @@ class VendorManagementDialog(QDialog):
             self.save_all_and_close()
             return  # save_all_and_close() handles closing
     def create_vendor_list_panel(self):
-        # ... (This method remains unchanged)
+
         left_panel = QWidget()
         left_layout = QVBoxLayout(left_panel)
 
@@ -127,9 +128,9 @@ class VendorManagementDialog(QDialog):
         right_layout.addWidget(details_label)
 
         # Guidance message for the user
-        self.guidance_label = QLabel("Select a provider from the list or click 'Add Provider' to begin editing.")
+        self.guidance_label = QLabel("Select a provider from the list or use 'Add Provider' to begin editing.")
         self.guidance_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.guidance_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+        self.guidance_label.setFont(QFont("Arial", 10, QFont.Weight.Bold)) # arial font does not matter as it is override  in main_window class
         right_layout.addWidget(self.guidance_label)
 
         # A widget to contain the form, which we can hide/show
@@ -168,6 +169,7 @@ class VendorManagementDialog(QDialog):
         self.save_changes_btn.setFixedSize(100, 30)
         self.save_changes_btn.setEnabled(False)
         self.save_changes_btn.clicked.connect(self.save_current_vendor)
+
         # Center the Save button
         save_button_layout = QHBoxLayout()
         save_button_layout.addStretch()  # Left stretch
@@ -195,7 +197,7 @@ class VendorManagementDialog(QDialog):
 
     def on_vendor_selected(self, item):
         self.toggle_details_panel(True)
-        # ... (rest of the method, remains unchanged)
+
         vendor_name = item.text()
         for vendor in self.vendors_data:
             if vendor.get('Name') == vendor_name:
@@ -206,9 +208,9 @@ class VendorManagementDialog(QDialog):
 
     def add_vendor(self):
         self.toggle_details_panel(True)
-        # ... (rest of the method, remains unchanged)
+
         new_vendor = {
-            'Name': 'New Provider',
+            'Name': '',
             'Base_URL': '',
             'Customer_ID': '',
             'Requestor_ID': '',
@@ -232,19 +234,21 @@ class VendorManagementDialog(QDialog):
         self.name_edit.selectAll()
         self.name_edit.setFocus()
 
+
     def clear_form(self):
-        # ... (rest of the method, remains unchanged)
+
         for edit in [self.name_edit, self.base_url_edit, self.customer_id_edit,
                      self.requestor_id_edit, self.api_key_edit, self.platform_edit,
                      self.delay_edit, self.retry_edit]:
             edit.clear()
         self.version_edit.setText("5.1")
         self.save_changes_btn.setEnabled(False)
+
         # Re-hide the form and show the guidance message
         self.toggle_details_panel(False)
 
     def load_vendors(self):
-        # ... (This method remains unchanged)
+
         try:
             providers_file = self.config_data.get('providers_file', 'providers.tsv')
             search_paths = [
@@ -273,6 +277,7 @@ class VendorManagementDialog(QDialog):
             QMessageBox.critical(self, "Error", f"Failed to load vendors: {e}")
 
     def populate_form(self, vendor_data):
+
         """Fill form with vendor data"""
         self.name_edit.setText(vendor_data.get('Name', ''))
         self.base_url_edit.setText(vendor_data.get('Base_URL', ''))
@@ -321,8 +326,9 @@ class VendorManagementDialog(QDialog):
         QMessageBox.information(self, "Success", "Vendor updated successfully!")
 
     def remove_vendor(self):
-        # ... (This method remains unchanged)
+
         current_item = self.vendor_list.currentItem()
+
         if not current_item:
             return
         reply = QMessageBox.question(
@@ -339,9 +345,15 @@ class VendorManagementDialog(QDialog):
             self.clear_form()
             self.vendor_list.clearSelection()
             self.remove_btn.setEnabled(False)
+            # Immediately persist to file
+            self.save_all_and_close()
+
+
+
+
 
     def validate_current_vendor(self):
-        # ... (This method remains unchanged)
+
         name = self.name_edit.text().strip()
         base_url = self.base_url_edit.text().strip()
         customer_id = self.customer_id_edit.text().strip()
@@ -362,16 +374,20 @@ class VendorManagementDialog(QDialog):
         return True
 
     def show_provider_help(self):
-        # ... (This method remains unchanged)
+
         help_url = "https://github.com/Melissa-Belvadi-Library-Projects/C5.1_Harvester/blob/main/docs/Running%20the%20Harvester.md"
         reply = QMessageBox.question(
             self,
+
             "Provider Management Help",
             "<b>Provider Help</b><br><br>"
             "This will open your web browser.<br>"
             "Do you want to continue?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
+
+       # dlg.setIcon(QMessageBox.Icon.Question)
+       # button = dlg.exec()
         if reply == QMessageBox.StandardButton.Yes:
             try:
                 webbrowser.open(help_url)
@@ -383,7 +399,6 @@ class VendorManagementDialog(QDialog):
                 )
 
     def save_all_and_close(self):
-        # ... (This method remains unchanged)
         try:
             providers_file = self.config_data.get('providers_file', 'providers.tsv')
             search_paths = [
@@ -408,7 +423,8 @@ class VendorManagementDialog(QDialog):
                     for field in fieldnames:
                         row[field] = vendor.get(field, '')
                     writer.writerow(row)
+            self.accept()
             #QMessageBox.information(self, "Success", f"Providers saved o {vendors_file_path}")
-           # self.accept()
+
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save providers: {e}")

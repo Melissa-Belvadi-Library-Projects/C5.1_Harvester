@@ -48,7 +48,7 @@ class VendorFrame(QGroupBox):
 
         # Create the control buttons with consistent styling
         select_all_btn = QPushButton("Select All")
-        deselect_all_btn = QPushButton("Deselect All")
+        deselect_all_btn = QPushButton("Clear All")
         select_all_btn.setFont(QFont("Arial", 10))
         deselect_all_btn.setFont(QFont("Arial", 10))
 
@@ -84,6 +84,9 @@ class VendorFrame(QGroupBox):
 
         # Apply the complete layout to this widget
         self.setLayout(layout)
+
+        self.scroll_area.setStyleSheet("background-color: white; border: none;")
+        self.scroll_widget.setStyleSheet("background-color: white;")
 
     def add_items(self, items):
         """
@@ -153,3 +156,4 @@ class VendorFrame(QGroupBox):
         """
         for cb in self.checkboxes:
             cb.setChecked(False)
+

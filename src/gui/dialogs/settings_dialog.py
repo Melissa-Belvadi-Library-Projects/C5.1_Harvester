@@ -17,10 +17,12 @@ class SushiConfigDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("SUSHI Configuration")
-        self.setFixedSize(500, 450)  # Slightly taller for extra button
+        self.setWindowTitle("Configuration")
+        self.setFixedSize(500, 450)
 
         # Configuration management
+        # Uses the  ConfigManager helper to read the config file (sushiconfig.py).
+        # Loads those values into fields, so when the dialog opens, everything matches current settings.
         self.config_manager = ConfigManager()
         self.config_data = self.config_manager.load_config()
 
@@ -234,8 +236,8 @@ class SushiConfigDialog(QDialog):
             self,
             "Reset to Defaults",
             "<b>Reset to Defaults</b><br><br>"
-            "This will reset all settings to their default values.<br>"
-            "Any unsaved changes will be lost.<br><br>"
+            "This will reset current settings to their default values and will save that change.<br><br>"
+        
             "Do you want to continue?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
