@@ -9,6 +9,7 @@ from PyQt6.QtCore import Qt
 from ..utils.config_manager import ConfigManager
 
 
+
 class SushiConfigDialog(QDialog):
     """
     Modal dialog for configuring application settings.
@@ -21,7 +22,7 @@ class SushiConfigDialog(QDialog):
         self.setFixedSize(500, 450)
 
         # Configuration management
-        # Uses the  ConfigManager helper to read the config file (sushiconfig.py).
+        # Uses the  ConfigManager helper to read the config file (current_config.py).
         # Loads those values into fields, so when the dialog opens, everything matches current settings.
         self.config_manager = ConfigManager()
         self.config_data = self.config_manager.load_config()
@@ -140,7 +141,7 @@ class SushiConfigDialog(QDialog):
         year_spin = QSpinBox()
         year_spin.setRange(2000, 2100)
         year_spin.setValue(int(default_year))
-        year_spin.setFixedWidth(60)
+        year_spin.setFixedWidth(85)
 
         # Container for date widgets
         date_layout = QHBoxLayout()

@@ -6,35 +6,35 @@ from PyQt6.QtWidgets import QMessageBox
 class ConfigManager:
     """
     Handles loading and saving of harvester configuration settings.
-    Manages the sushiconfig.py file that contains backend configuration parameters.
-    Provides intelligent file location detection and robust error handling.
+    Manages the current_config.py file that contains backend configuration parameters.
+    Provides  file location detection and robust error handling.
     """
 
     def __init__(self):
         """
         Constructor for ConfigManager.
-        Automatically locates the sushiconfig.py file on initialization.
+        Automatically locates the current_config.py file on initialization.
         """
-        # Find and store the path to sushiconfig.py using intelligent search
+        # Find and store the path to current_config.py using  search
         self.config_file = self._find_config_file()
 
     def _find_config_file(self):
         """
-        Intelligently searches for sushiconfig.py in multiple expected locations.
+        Intelligently searches for current_config.py in multiple expected locations.
         Handles different deployment scenarios and directory structures.
 
         Returns:
-            Path: Path object pointing to sushiconfig.py file
+            Path: Path object pointing to current_config.py file
         """
         # Get the directory containing this config_manager.py file
         current_dir = Path(__file__).parent
 
         # Define candidate locations in order of preference
         candidates = [
-            current_dir.parent.parent / "sushiconfig.py",  # src/sushiconfig.py
-            current_dir.parent.parent.parent / "sushiconfig.py",  # parent of src/
-            Path.cwd() / "sushiconfig.py",  # current working directory
-            Path.cwd().parent / "sushiconfig.py",  # parent of working directory
+            current_dir.parent.parent / "current_config.py",  # src/current_config.py
+            current_dir.parent.parent.parent / "current_config.py",  # parent of src/
+            Path.cwd() / "current_config.py",  # current working directory
+            Path.cwd().parent / "current_config.py",  # parent of working directory
         ]
 
         # Search through candidates and return first existing file
@@ -43,11 +43,11 @@ class ConfigManager:
                 return candidate
 
         # If no existing file found, return default location for creation
-        return current_dir.parent.parent / "sushiconfig.py"
+        return current_dir.parent.parent / "current_config.py"
 
     def load_config(self):
         """
-        Loads configuration settings from sushiconfig.py file.
+        Loads configuration settings from current_config.py file.
         Provides sensible defaults if file doesn't exist or has missing values.
         Parses Python variable assignments into a dictionary.
 
@@ -99,13 +99,13 @@ class ConfigManager:
 
         except Exception as e:
             # Print warning but continue with defaults if file reading fails
-            print(f"Warning: Could not load sushiconfig.py from {self.config_file}: {e}")
+            print(f"Warning: Could not load current_config.py from {self.config_file}: {e}")
 
         return config
 
     def save_config(self, config_data):
         """
-        Saves configuration dictionary back to sushiconfig.py file.
+        Saves configuration dictionary back to current_config.py file.
         Creates the file in Python format with proper variable assignments.
 
         Args:

@@ -51,20 +51,31 @@ class SushiHarvesterGUI(QMainWindow):
         Called once during initialization.
         """
         # Set up the central widget (main content area)
-        central_widget = QWidget()  # Container for all content
-        self.setCentralWidget(central_widget)  # Tell QMainWindow this is the main content
-        main_layout = QVBoxLayout(central_widget)  # Vertical layout manager
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        main_layout = QVBoxLayout(central_widget)
 
-        # === NO MENU BAR ===
-        # The line self.create_menu_bar() has been removed here.
+        # === Date Range + Help Button Row ===
+        date_layout = QHBoxLayout()
 
-        # Date Range Selection Section
-        # Create a date selector widget using our custom component
+        # Date selector
         self.date_selector = DateSelector(self.config_data)
-        main_layout.addWidget(self.date_selector)  # Add to main layout
+        date_layout.addWidget(self.date_selector)
 
-        # Selection Section (Report Types and Providers)
-        selection_layout = QHBoxLayout()  # Horizontal layout for side-by-side widgets
+        # Stretch pushes Help button to far right
+        date_layout.addStretch()
+
+        # Help button (moved here)
+        self.help_button = QPushButton("Help")
+       # self.help_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+        self.help_button.clicked.connect(self.show_help)
+        date_layout.addWidget(self.help_button)
+
+        # Add combined row to main layout
+        main_layout.addLayout(date_layout)
+
+        # === Report Types + Providers Section ===
+        selection_layout = QHBoxLayout()
 
         # List of available COUNTER report types
         report_types = [
@@ -73,80 +84,59 @@ class SushiHarvesterGUI(QMainWindow):
             "TR_J1", "TR_J2", "TR_J3", "TR_J4"
         ]
 
-        # Load vendor list and create vendor selection frame
+        # Providers frame
         vendors = self.load_vendors()
         self.vendor_frame = VendorFrame("Select Providers", vendors)
-        selection_layout.addWidget(self.vendor_frame,2)
+        selection_layout.addWidget(self.vendor_frame, stretch=2)  # 2/3 width
 
-        # Create vendor frame for report type selection
+
+        # Report types frame
         self.report_frame = VendorFrame("Select Report Types", report_types)
-        selection_layout.addWidget(self.report_frame, 1)
+        selection_layout.addWidget(self.report_frame, stretch=1)  # 1/3 width
 
 
 
-        # Add the selection section to main layout
+        # Add to main layout
         main_layout.addLayout(selection_layout)
 
-        # === First Button Row ===
+        # === First Button Row (Start, Manage Providers, Settings) ===
         first_button_layout = QHBoxLayout()
-
-
-        # Help button on far left
-        self.help_button = QPushButton("Help")
-        self.help_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-        self.help_button.clicked.connect(self.show_help)
-        first_button_layout.addWidget(self.help_button)
-
-        # Replace fixed spacing with proportional stretch
-        #first_button_layout.addStretch()  # This creates proportional spacing
-
-        first_button_layout.addSpacing(200)
 
         # Start button
         self.start_button = QPushButton("Start")
-        self.start_button.setFont(QFont("Arial", 14, QFont.Weight.Bold))
+       # self.start_button.setFont(QFont("Arial", 14, QFont.Weight.Bold))
         self.start_button.clicked.connect(self.on_start)
         first_button_layout.addWidget(self.start_button)
 
+        first_button_layout.addStretch(3)
 
-
-        # Stretch to push right buttons to far right
-        first_button_layout.addStretch(3)  # This maintains the proportional balance
-
-        # Right-aligned buttons grouped together
-        self.vendors_button = QPushButton("Manage providers")
-        self.vendors_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+        self.vendors_button = QPushButton("Manage Providers")
+       # self.vendors_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
         self.vendors_button.clicked.connect(self.show_vendors)
         first_button_layout.addWidget(self.vendors_button)
 
-        # Small spacing between the two right buttons
-        first_button_layout.addSpacing(10)
+        first_button_layout.addSpacing(5)
 
         self.settings_button = QPushButton("Settings")
-        self.settings_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+        #self.settings_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
         self.settings_button.clicked.connect(self.open_settings)
         first_button_layout.addWidget(self.settings_button)
 
-        # Add first button row to main layout
+        # Add button row
         main_layout.addLayout(first_button_layout)
 
-        # Add some vertical spacing between button rows
         main_layout.addSpacing(15)
 
-        # === Second Button Row (Exit Button) ===
+        # === Exit Button Row ===
         second_button_layout = QHBoxLayout()
-
-        # Push Exit button to far right
         second_button_layout.addStretch()
 
         self.exit_button = QPushButton("Exit")
-        self.exit_button.setFont(QFont("Arial", 11, QFont.Weight.Bold))
+       # self.exit_button.setFont(QFont("Arial", 11, QFont.Weight.Bold))
         self.exit_button.clicked.connect(self.close)
         second_button_layout.addWidget(self.exit_button)
 
-        # Add second button row to main layout
         main_layout.addLayout(second_button_layout)
-
 
     def load_vendors(self):
 

@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 import inspect
 import tsv_utils
 from tsv_utils import default_metric_types, format_nested_id, format_exceptions
-from sushiconfig import tsv_dir, always_include_header_metric_types, save_empty_report
+from current_config import tsv_dir, always_include_header_metric_types, save_empty_report
 from logger import log_error
 from reporting_period import reporting_period_build
 from convert_ir_reports import get_ir_a1_data, get_ir_m1_data, get_ir_data, get_ir_ex_data

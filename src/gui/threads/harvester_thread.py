@@ -48,7 +48,7 @@ class HarvesterThread(QThread):
             self.log_signal.emit("Starting harvester logic...")
 
             # Execute the harvester backend
-            # NOTE: Current implementation calls backend without GUI parameters
+            #NOTE: Current implementation calls backend without GUI parameters
             # Future enhancement: pass self.config parameters to run_harvester()
             run_harvester()
 
@@ -65,6 +65,6 @@ class HarvesterThread(QThread):
 
         except Exception as e:
             # Handle any other errors during harvester execution
-            # NOTE: There's a typo in the original code - "lopythg_signal" should be "log_signal"
+
             self.log_signal.emit(f"Error: {str(e)}")  # Fixed typo
             self.finished_signal.emit(False, -1)  # Signal failure to GUI

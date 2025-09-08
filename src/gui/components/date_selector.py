@@ -64,7 +64,7 @@ class DateSelector(QGroupBox):
         # A QSpinBox is a widget that lets the user select an integer value by clicking up/down arrows or by typing a number directly.
         self.start_year.setRange(2000, 2100)
         self.start_year.setValue(begin_year)
-        self.start_year.setFixedWidth(65)
+        self.start_year.setFixedWidth(75)
         date_layout.addWidget(self.start_year, 0, 2) # the first number, 0, is the row index. The second number, 3, is the column index.
 
         #add spaces as we are inheriting from gridlayout
@@ -77,14 +77,14 @@ class DateSelector(QGroupBox):
         self.end_month = QComboBox()
         self.end_month.addItems(months)
         self.end_month.setCurrentIndex(end_month_idx)
-        self.end_month.setFixedWidth(90)
+        self.end_month.setFixedWidth(95)
         date_layout.addWidget(self.end_month, 0, 5)
 
         # End year spinner
         self.end_year = QSpinBox()
         self.end_year.setRange(2000, 2100)
         self.end_year.setValue(end_year)
-        self.end_year.setFixedWidth(65)
+        self.end_year.setFixedWidth(75)
         date_layout.addWidget(self.end_year, 0, 6)
 
         # Add stretch to keep widgets left-aligned

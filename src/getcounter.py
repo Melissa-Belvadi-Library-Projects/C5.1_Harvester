@@ -6,7 +6,7 @@ from create_tables import create_data_table
 from load_providers import load_providers  # Import the load_providers function
 from fetch_json import fetch_json  # Import the fetch_json function to get report data
 from process_item_details import process_item_details
-from sushiconfig import sqlite_filename, providers_file, error_log_file
+from current_config import sqlite_filename, providers_file, error_log_file
 
 
 def json_to_sqlite(dict_providers):

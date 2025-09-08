@@ -48,12 +48,12 @@ class ProgressDialog(QDialog):
 
         # Status label at top - shows current harvester state
         self.status_label = QLabel("Preparing to start harvester...")
-        self.status_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+       # self.status_label.setFont(QFont("Arial", 10, QFont.Weight.Bold))
         layout.addWidget(self.status_label)
 
         # Large text area for displaying log messages
         self.log_text = QTextEdit()
-        self.log_text.setFont(QFont("Arial", 9))
+       # self.log_text.setFont(QFont("Arial", 9))
         self.log_text.setReadOnly(True)  # User cannot edit log content
         layout.addWidget(self.log_text)
 
@@ -62,7 +62,7 @@ class ProgressDialog(QDialog):
 
         # Save Log button on the left side
         self.save_log_button = QPushButton("Save Message Log")
-        self.save_log_button.setFont(QFont("Arial", 10))
+       # self.save_log_button.setFont(QFont("Arial", 10))
         self.save_log_button.clicked.connect(self.save_message_log)
         button_layout.addWidget(self.save_log_button)
 
@@ -71,13 +71,13 @@ class ProgressDialog(QDialog):
 
         # Stop button - terminates the running harvester
         self.stop_button = QPushButton("STOP")
-        self.stop_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+       # self.stop_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
         self.stop_button.clicked.connect(self.stop_harvester)
         button_layout.addWidget(self.stop_button)
 
         # Close button - closes dialog (disabled during harvester execution)
         self.close_button = QPushButton("CLOSE")
-        self.close_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+       # self.close_button.setFont(QFont("Arial", 12, QFont.Weight.Bold))
         self.close_button.setEnabled(False)  # Disabled until harvester finishes
         self.close_button.clicked.connect(self.accept)  # Closes dialog with "accepted" status
         button_layout.addWidget(self.close_button)
