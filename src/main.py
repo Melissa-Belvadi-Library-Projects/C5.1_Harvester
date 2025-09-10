@@ -139,7 +139,7 @@ color: #666666;
 
 /* App main background */
 QMainWindow > QWidget {
-    background-color: #b1d1e2;
+    background-color: #eff2f6;
 }
 
 /* Panels */
