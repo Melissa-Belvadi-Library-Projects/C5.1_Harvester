@@ -2,5 +2,5 @@ brotli==1.1.0
 python_dateutil==2.9.0.post0
 Requests==2.32.3
 PyQt6>=6.7.0
-
-
+pytest>=7.4.0
+pytest-qt>=4.2.0
