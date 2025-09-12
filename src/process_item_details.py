@@ -12,7 +12,7 @@ from data_columns import data_columns  # Assuming this contains your SQLite tabl
 from logger import log_error
 from fetch_json import get_json_data  # generic routine to get json report with various error handling, headers, content encoding, etc.
 from insert_sqlite import insert_sqlite
-from sushiconfig import sqlite_filename, json_dir, error_log_file, save_empty_report
+from current_config import sqlite_filename, json_dir, error_log_file, save_empty_report
 from convert_counter_json_to_tsv import convert_counter_json_to_tsv
 
 

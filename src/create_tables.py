@@ -1,7 +1,7 @@
 # create_tables.py
 # create the sqlite table using the list from data_columns
 from logger import log_error
-from sushiconfig import sqlite_filename, data_table
+from current_config import sqlite_filename, data_table
 from data_columns import data_columns
 
 

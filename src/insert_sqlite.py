@@ -1,7 +1,7 @@
 import sqlite3
 import hashlib
 from logger import log_error
-from sushiconfig import data_table
+from current_config import data_table
 from data_columns import data_columns
 
 def normalize_column_names(data_dict):

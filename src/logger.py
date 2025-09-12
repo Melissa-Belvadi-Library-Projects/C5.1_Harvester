@@ -1,6 +1,6 @@
 # logger.py
 
-from sushiconfig import error_log_file
+from current_config import error_log_file
 
 def clear_log_error():
     with open(error_log_file, 'w'):
