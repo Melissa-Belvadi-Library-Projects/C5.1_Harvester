@@ -1,4 +1,4 @@
-#### Main program
+### Main program
 import sqlite3
 from datetime import datetime
 from logger import log_error
@@ -7,6 +7,17 @@ from load_providers import load_providers  # Import the load_providers function
 from fetch_json import fetch_json  # Import the fetch_json function to get report data
 from process_item_details import process_item_details
 from current_config import sqlite_filename, providers_file, error_log_file
+
+class DummySignal:
+    """A dummy class to stand in for pyqtSignal during testing."""
+    def emit(self, message):
+        # Instead of emitting a signal, we just print the message.
+        # This confirms that the signal would have been sent.
+        print(f"[SIGNAL EMIT]: {message}")
+# --- Your Test Setup ---
+# 1. Create instances of your dummy signal
+mock_error_signal = DummySignal()
+mock_warning_signal = DummySignal()
 
 
 def json_to_sqlite(dict_providers):
@@ -43,7 +54,7 @@ if __name__ == "__main__":
     log_error(f'INFO: Start of program run: Current date and time: {current_time}')
 
     # Load providers data from providers.tsv
-    providers = load_providers(providers_file)  # With the GUI, this will only get the user_selections vendors list from among the providers_file
+    providers = load_providers(providers_file, user_selections,mock_error_signal, mock_warning_signal)  # With the GUI, this will only get the user_selections vendors list from among the providers_file
     # Fetch the provider api url info using fetch_json
     providers_dict = fetch_json(providers)
     # fetch_json returns
