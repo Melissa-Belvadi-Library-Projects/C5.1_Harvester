@@ -1,3 +1,8 @@
+# Change log
+Changes from version 1 to version 2.0:
+- Added the GUI using PyQt6, with all of the other changes necessitated by that, including adding dependencies to requirements.txt.
+- Switched from using the word "SUSHI" to refer to the API to just referring to it as the "COUNTER API" in alignment with Project COUNTER.
+
 Changes from 0.9, the April pre-release, and 1.0, the May 12, 2025 release:
 - Modified sqlite database structure to make updates and new data much faster and eliminated a duplication problem, eg uses hashlib to determine whether need to insert or replace
 - added support for IR report and its standard views
