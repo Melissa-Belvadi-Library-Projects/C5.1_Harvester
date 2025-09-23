@@ -146,6 +146,7 @@ QMainWindow > QWidget {
     background-color: #eff2f6;
 }
 
+
 /* Panels */
 QGroupBox {
     background-color: #ffffff;
@@ -162,6 +163,9 @@ QGroupBox::title {
     font-weight: bold;
     color: #000000;
 }
+
+
+
 """
 
 
@@ -172,6 +176,7 @@ def main():
 
     window = SushiHarvesterGUI()
     window.show()
+
 
     sys.exit(app.exec())
 

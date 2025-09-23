@@ -90,3 +90,11 @@ class VendorFrame(QGroupBox):
         """Uncheck all checkboxes."""
         for cb in self.checkboxes:
             cb.setChecked(False)
+
+    def select_item(self, item_text):
+        """Select (check) a checkbox by its text."""
+        for checkbox in self.checkboxes:
+            if checkbox.text() == item_text:
+                checkbox.setChecked(True)
+                break
+

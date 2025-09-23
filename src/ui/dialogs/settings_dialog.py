@@ -10,6 +10,7 @@ from PyQt6.QtWidgets import (
     QWidget, QMessageBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QPalette, QColor
 
 
 class SushiConfigDialog(QDialog):
@@ -25,7 +26,7 @@ class SushiConfigDialog(QDialog):
         """Initialize with optional initial state."""
         super().__init__(parent)
 
-        self.setWindowTitle("Configuration")
+        self.setWindowTitle("Settings")
         self.setFixedSize(500, 450)
 
         # State management
@@ -96,6 +97,7 @@ class SushiConfigDialog(QDialog):
         fields_layout.addWidget(QLabel("Providers File:"), row, 0,
                                 Qt.AlignmentFlag.AlignRight)
         self.fields['providers_file'] = QLineEdit()
+        self.fields['providers_file'].editingFinished.connect(self._on_providers_file_changed) #updates the main window providers once saved
         self.fields['providers_file'].setFixedWidth(150)
         fields_layout.addWidget(self.fields['providers_file'], row, 1)
 
@@ -256,9 +258,40 @@ class SushiConfigDialog(QDialog):
         has_changes = current_state != self._original_state
         self.save_btn.setEnabled(has_changes)
 
+    def _on_providers_file_changed(self):
+        """Emit configChanged immediately when providers_file changes."""
+
+        providers_file = self.fields['providers_file'].text()
+
+
+        # Shallow validation
+        #if providers_file.strip() and not providers_file.lower().endswith(".tsv"):
+           # QMessageBox.warning(
+             #   self,
+             #   "Invalid File",
+             #   "Providers file must be a .tsv file."
+           # )
+           # return
+
+        # Build current config and emit it
+        config = self.get_state()
+
+        self.configChanged.emit(config)
+
+
     def _save_changes(self):
         """Save configuration changes."""
         config = self.get_state()
+
+        # Validate providers file
+        providers_file = config.get("providers_file", "")
+        if providers_file.strip() and not providers_file.lower().endswith(".tsv"):
+            QMessageBox.warning(
+                self,
+                "Invalid File",
+                "Providers file must be a .tsv file."
+            )
+            return  # stop saving
 
         # Emit signal instead of saving directly
         self.configChanged.emit(config)
