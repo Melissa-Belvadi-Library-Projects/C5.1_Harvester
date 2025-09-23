@@ -1,4 +1,4 @@
-"""Main application window with centralized state management."""
+"""Main application window with centralized state management and scrim overlay system."""
 
 import sys
 from pathlib import Path
@@ -25,7 +25,7 @@ from ui.dialogs.progress_dialog import ProgressDialog
 
 class SushiHarvesterGUI(QMainWindow):
     """
-    Main application window with centralized state management.
+    Main application window with centralized state management and scrim overlay system.
     Acts as the controller, coordinating between UI components and data layer.
     """
 
@@ -48,6 +48,11 @@ class SushiHarvesterGUI(QMainWindow):
         # Load initial state
         self._load_initial_state()
 
+        # Create the scrim overlay widget (must be created before UI setup)
+        self.scrim = QWidget(self)
+        self.scrim.setStyleSheet("background-color: rgba(0, 0, 0, 150);")
+        self.scrim.hide()  # Hidden by default
+
         # Build UI
         self._setup_ui()
 
@@ -56,6 +61,29 @@ class SushiHarvesterGUI(QMainWindow):
 
         # Apply initial state to components
         self._apply_state_to_ui()
+
+    def resizeEvent(self, event):
+        """Ensure scrim covers entire window when resized."""
+        super().resizeEvent(event)
+        if hasattr(self, 'scrim'):
+            self.scrim.resize(self.size())
+
+    def show_modal_with_scrim(self, dialog):
+        """Show a dialog with scrim effect."""
+        # Resize and show scrim
+        self.scrim.resize(self.size())
+        self.scrim.show()
+        self.scrim.raise_()  # Bring scrim above main content
+
+        # Show dialog
+        dialog.raise_()  # Dialog above scrim
+        dialog.activateWindow()
+        result = dialog.exec()
+
+        # Hide scrim when dialog closes
+        self.scrim.hide()
+
+        return result
 
     def _load_initial_state(self):
         """Load initial configuration and vendor data."""
@@ -179,7 +207,15 @@ class SushiHarvesterGUI(QMainWindow):
         # Update vendor list
         vendor_names = [v['Name'] for v in self.app_state.vendors_data
                         if v.get('Name', '').strip()]
-        self.vendor_frame.update_items(vendor_names)
+
+        # Check if vendor_frame has update_items method, otherwise recreate
+        if hasattr(self.vendor_frame, 'update_items'):
+            self.vendor_frame.update_items(vendor_names)
+        else:
+            # Fallback: recreate the frame if update method doesn't exist
+            old_frame = self.vendor_frame
+            self.vendor_frame = VendorFrame("Select Providers", vendor_names)
+            # Replace in layout if needed
 
         # Apply selected items if any
         if self.app_state.selected_vendors:
@@ -201,6 +237,8 @@ class SushiHarvesterGUI(QMainWindow):
 
     def _on_config_changed(self, config: dict):
         """Handle configuration changes."""
+
+
         # Update app state
         self.app_state.update_config(config)
 
@@ -209,9 +247,14 @@ class SushiHarvesterGUI(QMainWindow):
 
         # Update vendor repository if providers file changed
         if 'providers_file' in config:
+
             self.vendor_repo.providers_file = config['providers_file']
+
             # Reload vendors
+
             vendors_data = self.vendor_repo.load()
+
+
             self.app_state.vendors_data = vendors_data
             self._on_vendors_data_changed(vendors_data)
 
@@ -228,6 +271,8 @@ class SushiHarvesterGUI(QMainWindow):
 
     def _on_vendors_data_changed(self, vendors_data: list):
         """Handle vendor data changes."""
+
+
         # Update state
         self.app_state.vendors_data = vendors_data
 
@@ -237,7 +282,13 @@ class SushiHarvesterGUI(QMainWindow):
         # Update UI
         vendor_names = [v['Name'] for v in vendors_data
                         if v.get('Name', '').strip()]
-        self.vendor_frame.update_items(vendor_names)
+        print(f"DEBUG: Extracted vendor names: {vendor_names}")
+
+        # Check if update_items method exists
+        if hasattr(self.vendor_frame, 'update_items'):
+
+            self.vendor_frame.update_items(vendor_names)
+
 
     def _on_reports_changed(self, report_names: list):
         """Handle report selection changes."""
@@ -293,16 +344,16 @@ class SushiHarvesterGUI(QMainWindow):
             config=self.app_state.config
         )
 
-        # Show progress dialog
+        # Show progress dialog with scrim
         progress_dialog = ProgressDialog(
             config=config,
             app_state=self.app_state,
             parent=self
         )
-        progress_dialog.exec()
+        self.show_modal_with_scrim(progress_dialog)
 
     def _show_vendors(self):
-        """Show vendor management dialog."""
+        """Show vendor management dialog with scrim."""
         dialog = VendorManagementDialog(
             initial_state={"vendors": self.app_state.vendors_data},
             parent=self
@@ -311,7 +362,7 @@ class SushiHarvesterGUI(QMainWindow):
         # Connect dialog signals
         dialog.vendorsDataChanged.connect(self._on_vendors_data_changed)
 
-        result = dialog.exec()
+        result = self.show_modal_with_scrim(dialog)
 
         if result == QDialog.DialogCode.Accepted:
             # Get final state and update
@@ -319,7 +370,7 @@ class SushiHarvesterGUI(QMainWindow):
             self._on_vendors_data_changed(state['vendors'])
 
     def _open_settings(self):
-        """Open settings dialog."""
+        """Open settings dialog with scrim."""
         dialog = SushiConfigDialog(
             initial_state=self.app_state.config,
             parent=self
@@ -328,7 +379,7 @@ class SushiHarvesterGUI(QMainWindow):
         # Connect dialog signals
         dialog.configChanged.connect(self._on_config_changed)
 
-        dialog.exec()
+        self.show_modal_with_scrim(dialog)
 
     def _show_help(self):
         """Show help information."""
@@ -346,13 +397,10 @@ class SushiHarvesterGUI(QMainWindow):
         """Handle application exit."""
         self.close()
 
-# Extended VendorFrame with selection methods
-class VendorFrame(VendorFrame):
-    """Extended vendor frame with state management support."""
 
-    def select_item(self, item_text: str):
-        """Select an item by its text."""
-        for checkbox in self.checkboxes:
-            if checkbox.text() == item_text:
-                checkbox.setChecked(True)
-                break
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = SushiHarvesterGUI()
+    window.show()
+    sys.exit(app.exec())

@@ -33,6 +33,7 @@ class ConfigRepository:
         """Load configuration from file."""
         config = self._get_defaults()
 
+
         try:
             if self.config_file.exists():
                 with open(self.config_file, 'r') as f:
@@ -109,9 +110,9 @@ class VendorRepository:
 
     def _find_file(self) -> Optional[Path]:
         """Locate the providers file."""
-        if self._file_path and self._file_path.exists():
-            return self._file_path
 
+
+        # FIXED: Always search for current providers_file, don't use cached path
         search_paths = [
             Path.cwd() / self.providers_file,
             Path.cwd().parent / self.providers_file,
@@ -119,18 +120,25 @@ class VendorRepository:
         ]
 
         for path in search_paths:
+
             if path.exists():
                 self._file_path = path
+                print(f"DEBUG: Found providers file at: {path}")
                 return path
 
         # Default location if not found
         self._file_path = Path.cwd() / self.providers_file
+        print(f"DEBUG: File not found, using default: {self._file_path}")
         return self._file_path
 
     def load(self) -> List[Dict[str, str]]:
         """Load vendors from TSV file."""
+        print(f"DEBUG: VendorRepository.load() called with providers_file: {self.providers_file}")
+
         vendors = []
         file_path = self._find_file()
+
+        print(f"DEBUG: Attempting to load from: {file_path}")
 
         if file_path and file_path.exists():
             try:
@@ -139,8 +147,11 @@ class VendorRepository:
                     for row in reader:
                         if row.get('Name', '').strip():
                             vendors.append(dict(row))
+                print(f"DEBUG: Successfully loaded {len(vendors)} vendors from {file_path}")
             except Exception as e:
                 print(f"Error loading vendors: {e}")
+        else:
+            print(f"DEBUG: File {file_path} does not exist!")
 
         return vendors
 
