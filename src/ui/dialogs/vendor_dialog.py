@@ -11,23 +11,28 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 
+from help_file import get_help_url
+
 
 class VendorManagementDialog(QDialog):
     """
     Dialog for managing vendors with state-based approach.
-    No direct file I/O - emits signals for persistence.
+    No direct file I/O - emits signals when vendors been changed .
+
     """
+
+
 
     # Signal emitted when vendors list changes
     vendorsChanged = pyqtSignal(list)  # List of vendor names
-    vendorsDataChanged = pyqtSignal(list)  # Full vendor data
+    vendorsDataChanged = pyqtSignal(object)  # Full vendor data
 
     def __init__(self, initial_state: Optional[Dict[str, Any]] = None, parent=None):
         """Initialize with optional initial state."""
         super().__init__(parent)
 
         self.setWindowTitle("Manage Providers")
-        self.setFixedSize(1000, 500)
+        self.resize(1000, 500)
 
         # State management
         self._vendors_data: List[Dict[str, str]] = []
@@ -51,7 +56,10 @@ class VendorManagementDialog(QDialog):
         # Create splitter for two-panel layout
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
+        #left panel is the list of vendors
         left_panel = self._create_vendor_list_panel()
+
+        #right panel is where the user cna modify the provider details
         right_panel = self._create_vendor_details_panel()
 
         splitter.addWidget(left_panel)
@@ -110,7 +118,8 @@ class VendorManagementDialog(QDialog):
         return panel
 
     def _create_vendor_details_panel(self) -> QWidget:
-        """Create the right panel with vendor details form."""
+
+        """Creates the right panel with vendor details form."""
         panel = QWidget()
         layout = QVBoxLayout(panel)
 
@@ -182,7 +191,7 @@ class VendorManagementDialog(QDialog):
 
     def get_state(self) -> Dict[str, Any]:
         """
-        Get current state as a serializable dictionary.
+        Get current state as a  dictionary.
 
         Returns:
             Dict with 'vendors' key containing list of vendor dictionaries
@@ -370,6 +379,7 @@ class VendorManagementDialog(QDialog):
         )
 
     def _save_current_vendor(self) -> bool:
+
         """Save current vendor to memory (not file)."""
         if not self._current_vendor:
             return False
@@ -429,7 +439,7 @@ class VendorManagementDialog(QDialog):
 
         self._emit_vendors_changed()
         QMessageBox.information(self, "Success",
-                                "All providers saved successfully!")
+                                "All providers saved")
 
     def _emit_vendors_changed(self):
         """Emit vendor change signals."""
@@ -463,11 +473,11 @@ class VendorManagementDialog(QDialog):
             self.accept()
     def _show_help(self):
         """Show help documentation."""
-        help_url = "https://github.com/example/docs/providers.md"
+        help_url = get_help_url("providers")
 
         reply = QMessageBox.question(
             self, "Provider Management Help",
-            "Open help documentation in browser?",
+            "Open Provider help documentation in browser?",
             QMessageBox.StandardButton.Yes |
             QMessageBox.StandardButton.No
         )

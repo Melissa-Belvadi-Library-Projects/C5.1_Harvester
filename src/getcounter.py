@@ -1,65 +1,141 @@
-### Main program
+"""Main harvester program - can be called from CLI or GUI"""
 import sqlite3
+import traceback
 from datetime import datetime
+from pathlib import Path
 from logger import log_error
 from create_tables import create_data_table
-from load_providers import load_providers  # Import the load_providers function
-from fetch_json import fetch_json  # Import the fetch_json function to get report data
+from load_providers import load_providers
+from fetch_json import fetch_json
 from process_item_details import process_item_details
 from current_config import sqlite_filename, providers_file, error_log_file
 
-class DummySignal:
-    """A dummy class to stand in for pyqtSignal during testing."""
-    def emit(self, message):
-        # Instead of emitting a signal, we just print the message.
-        # This confirms that the signal would have been sent.
-        print(f"[SIGNAL EMIT]: {message}")
-# --- Your Test Setup ---
-# 1. Create instances of your dummy signal
-mock_error_signal = DummySignal()
-mock_warning_signal = DummySignal()
 
+def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
+                  progress_callback=None, is_cancelled_callback=None):
+    """
+    Run the COUNTER harvester with given parameters.
 
-def json_to_sqlite(dict_providers):
-    # Connect to the SQLite database
-    conn = sqlite3.connect(sqlite_filename)
-    cursor = conn.cursor()
+    Args:
+        begin_date: Start date in YYYY-MM format
+        end_date: End date in YYYY-MM format
+        selected_vendors: List of vendor names to process (empty list = all vendors)
+        selected_reports: List of report types like ['DR', 'TR', 'PR', 'IR']
+        progress_callback: Optional function to call with progress messages
+        is_cancelled_callback: Optional function that returns True if user cancelled
 
-    # Create tables if they do not exist
-    create_data_table(cursor)
-    #create_header_table(cursor)
-    conn.commit()
-    conn.close()
-    # Process each provider's info
-    for provider_name in dict_providers.keys():
-        this_provider = dict_providers[provider_name]
-        for report_id, report_url  in this_provider['Report_URLS'].items():  ###This was filtered for the user selections for report IDs
-            #api_url = this_provider['Report_URLS'].get(report_id, 'Not available')  # use url for api
-            log_error(f"\nINFO: Retrieving report: {provider_name}: {report_id.upper()}: \n{report_url}")
-            print(f"Retrieving report: {provider_name}: {report_id.upper()}")
-            process_item_details(this_provider,report_id,report_url)
+    Returns:
+        Dictionary with results
+    """
 
+    def log(msg):
+        """Send message to callback or print."""
+        if progress_callback:
+            progress_callback(msg)
+        else:
+            print(msg)
 
-if __name__ == "__main__":
+    def is_cancelled():
+        """Checks if operation was cancelled."""
+        if is_cancelled_callback:
+            return is_cancelled_callback()
+        return False
 
-    ### Temporary as we merge the gui code in here  - remove this declaration when we are passing it from the gui
-    user_selections = {
-        'start_date': "2025-01",
-        'end_date': "2025-08",
-        'reports': ['DR', 'IR', 'TR', 'PR'],
-        'vendors': ['EBSCO']
+    # Initialize results to
+    results = {
+        'errors': []
     }
-    open(error_log_file, 'w', encoding="utf-8").close()   ### empty out error log file
-    current_time = datetime.now()
-    log_error(f'INFO: Start of program run: Current date and time: {current_time}')
 
-    # Load providers data from providers.tsv
-    providers = load_providers(providers_file, user_selections,mock_error_signal, mock_warning_signal)  # With the GUI, this will only get the user_selections vendors list from among the providers_file
-    # Fetch the provider api url info using fetch_json
-    providers_dict = fetch_json(providers)
-    # fetch_json returns
-    if providers_dict and isinstance(providers_dict, dict):
-        json_to_sqlite(providers_dict)
-    else:
-        log_error(f'ERROR: Getcounter Failed to get the providers info for the user selected vendors and reports from {providers_file}\n')
-    print(f"Done all providers, all reports.\nCheck {error_log_file} for problems/reports that failed/exceptions")
+    try:
+        # Clear error log
+        open(error_log_file, 'w', encoding="utf-8").close()
+        current_time = datetime.now()
+        log_error(f'INFO: Start of harvester run: {current_time}')
+
+        # Build user_selections for load_providers
+        user_selections = {
+            'start_date': begin_date,
+            'end_date': end_date,
+            'reports': selected_reports,
+            'vendors': selected_vendors
+        }
+
+        # Create callbacks for load_providers
+        def error_callback(msg):
+            log(f"ERROR: {msg}")
+            results['errors'].append(msg)
+
+        def warning_callback(msg):
+            log(f"WARNING: {msg}")
+
+        providers = load_providers(
+            providers_file,
+            user_selections,
+            error_callback,
+            warning_callback
+        )
+
+        if not providers:
+            error_msg = "No valid providers found"
+            log(f"ERROR: {error_msg}")
+            results['errors'].append(error_msg)
+            return results
+
+        if is_cancelled():
+            return results
+
+        # Fetch provider API information
+        providers_dict = fetch_json(providers, begin_date, end_date, selected_reports)
+
+        if not providers_dict:
+            error_msg = "Failed to fetch provider information from API"
+            log(f"ERROR: {error_msg}")
+            results['errors'].append(error_msg)
+            return results
+
+        if is_cancelled():
+            return results
+
+        # Initialize database
+        conn = sqlite3.connect(sqlite_filename)
+        cursor = conn.cursor()
+        create_data_table(cursor)
+        conn.commit()
+        conn.close()
+
+        if is_cancelled():
+            return results
+
+        # Process each provider's reports
+        for provider_name, provider_info in providers_dict.items():
+            if is_cancelled():
+                break
+
+            report_urls = provider_info.get('Report_URLS', {})
+
+            for report_id, report_url in report_urls.items():
+                if is_cancelled():
+                    break
+
+                log_error(f"INFO: Retrieving report: {provider_name}: {report_id.upper()}: {report_url}")
+                log(f"Retrieving report: {provider_name}: {report_id.upper()}")
+
+                try:
+                    process_item_details(provider_info, report_id, report_url)
+
+                except Exception as e:
+                    error_msg = f"Error processing {provider_name}:{report_id}: {str(e)}"
+                    log_error(f"ERROR: {error_msg}\n{traceback.format_exc()}")
+                    results['errors'].append(error_msg)
+
+
+        log(f"Done all providers, all reports.")
+        log(f"Check {error_log_file} for problems/reports that failed/exceptions")
+
+    except Exception as e:
+        error_msg = f"Harvester failed: {str(e)}"
+        log(f"ERROR: {error_msg}")
+        log_error(f"ERROR: {error_msg}\n{traceback.format_exc()}")
+        results['errors'].append(error_msg)
+
+    return results

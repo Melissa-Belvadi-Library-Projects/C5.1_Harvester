@@ -2,8 +2,6 @@
 import sys
 from pathlib import Path
 from PyQt6.QtWidgets import QApplication
-
-# No need to add to path since we're in src/
 from ui.main_window import SushiHarvesterGUI
 
 # Defines global QSS styles for the entire GUI. it overrides defaults of windows,frames,buttons

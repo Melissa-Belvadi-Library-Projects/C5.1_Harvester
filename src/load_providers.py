@@ -2,27 +2,21 @@ import csv
 import sys
 from logger import log_error
 
-def load_providers(file_path, user_selections, error_signal, warning_signal):
+def load_providers(file_path, user_selections, error_callback , warning_callback ):
     """
     Loads provider data from a TSV file, validates it, and filters based on user selections.
 
     Args:
         file_path (str): The path to the TSV file.
         user_selections (dict): A dictionary containing user choices from the GUI.
-        error_signal (pyqtSignal): A signal to emit for fatal file-level errors.
-        warning_signal (pyqtSignal): A signal to emit for non-fatal, row-level warnings.
+        error_callback (callable): Function to call for fatal file-level errors.
+        warning_callback (callable): Function to call for non-fatal, row-level warnings.
 
     Returns:
         list: A list of provider dictionaries on success.
         None: On any fatal validation failure.
     """
-    if not user_selections:
-        user_selections = {
-        'start_date': "2025-01",
-        'end_date': "2025-08",
-        'reports': ['DR', 'IR', 'TR', 'PR'],
-        'vendors': ['EBSCO']
-        }
+#added callback
     try:
         with open(file_path, 'r', encoding="utf-8") as file:
             # 1. General Validation: Sniff the delimiter to ensure it's a TSV.
@@ -32,12 +26,12 @@ def load_providers(file_path, user_selections, error_signal, warning_signal):
                 if dialect.delimiter != '\t':
                     error_message = f"File Format Error: Expected a Tab-Separated (TSV) file for providers, but it appears to be delimited by '{dialect.delimiter}'."
                     log_error(error_message)
-                    error_signal.emit(error_message)
+                    error_callback(error_message)  # CHANGED: removed .emit()
                     return None
             except csv.Error:
                 error_message = f"File Format Error: Could not determine file structure of {file_path}. Please ensure it is a valid TSV text file and not binary (like an Excel .xlsx file)."
                 log_error(error_message)
-                error_signal.emit(error_message)
+                error_callback(error_message)
                 return None
 
             reader = csv.reader(file, dialect)
@@ -48,7 +42,7 @@ def load_providers(file_path, user_selections, error_signal, warning_signal):
                 num_headers = len(headers)
             except StopIteration:
                 error_message = "File Format Error: The file is empty."
-                error_signal.emit(error_message)
+                error_callback(error_message)
                 return None
 
             required_headers = ['Name', 'Base_URL', 'Customer_ID', 'Version']
@@ -56,7 +50,7 @@ def load_providers(file_path, user_selections, error_signal, warning_signal):
             if missing_headers:
                 error_message = f"Missing Required Columns: The providers file must contain the following columns: {', '.join(missing_headers)}."
                 log_error(error_message)
-                error_signal.emit(error_message)
+                error_callback(error_message)
                 return None
 
             # Create a map of header names to their column index for easy lookup
@@ -75,7 +69,7 @@ def load_providers(file_path, user_selections, error_signal, warning_signal):
                 # New validation: Check for rows that are too long
                 elif len(row) > num_headers:
                     warning_message = f"Formatting Warning on line {row_num}: Expected {num_headers} columns, but found {len(row)}. Ignoring extra data."
-                    warning_signal.emit(warning_message)
+                    warning_callback(warning_message) # removed emit
                     log_error(warning_message)
                     row = row[:num_headers]
 
@@ -90,19 +84,19 @@ def load_providers(file_path, user_selections, error_signal, warning_signal):
                 if version != '5.1':
 
                     warning_message = f"Skipping '{provider_name}': The 'Version' column must be exactly '5.1', but it was '{version}'."
-                    warning_signal.emit(warning_message)
+                    warning_callback(warning_message) # removed emit
                     log_error(warning_message)
                     continue
 
                 if not row[header_indices['Base_URL']]:
                     warning_message = f"Skipping '{provider_name}': The 'Base_URL' column cannot be empty."
-                    warning_signal.emit(warning_message)
+                    warning_callback(warning_message) #removed
                     log_error(warning_message)
                     continue
 
                 if not row[header_indices['Customer_ID']]:
                     warning_message = f"Skipping '{provider_name}': The 'Customer_ID' column cannot be empty."
-                    warning_signal.emit(warning_message)
+                    warning_callback(warning_message) #removed emit
                     log_error(warning_message)
                     continue
 
@@ -126,7 +120,7 @@ def load_providers(file_path, user_selections, error_signal, warning_signal):
             if not providers:
                 # This could be because the file only had a header, or no providers matched the user's selection
                 error_message = f"No providers found in {file_path} for the vendors selected in the GUI."
-                error_signal.emit(error_message)
+                error_callback(error_message) #removed emit
                 log_error(error_message)
                 return None
 
@@ -134,17 +128,17 @@ def load_providers(file_path, user_selections, error_signal, warning_signal):
 
     except UnicodeDecodeError:
         error_message = f"File Encoding Error: {file_path} is not a valid UTF-8 text file. Please ensure it is not  a binary file (like an Excel .xlsx file)."
-        error_signal.emit(error_message)
+        error_callback(error_message)
         log_error(error_message)
         return None
     except FileNotFoundError:
         error_message = f"File Not Found: {file_path} could not be found at the specified path."
-        error_signal.emit(error_message)
+        error_callback(error_message)
         log_error(error_message)
         return None
     except Exception as e:
         # A catch-all for any other unexpected errors during file processing
         error_message = f"An unexpected error occurred while loading {file_path}: {e}"
-        error_signal.emit(error_message)
+        error_callback(error_message)
         log_error(error_message)
         return None

@@ -15,10 +15,11 @@ class DateSelector(QGroupBox):
     Emits signals on user changes, responds to external state updates.
     """
 
-    # High-level signal for date range changes
+    # Signal for date range changes
     dateRangeChanged = pyqtSignal(str, str)  # start, end in YYYY-MM format
 
     def __init__(self, initial_state: Optional[Dict[str, Any]] = None):
+
         """Initialize with optional initial state."""
         super().__init__("Select Date Range")
 
@@ -54,14 +55,18 @@ class DateSelector(QGroupBox):
 
         self.start_month = QComboBox()
         self.start_month.addItems(self.months)
-        self.start_month.setFixedWidth(95)
+        self.start_month.setFixedWidth(105)
         self.start_month.currentIndexChanged.connect(self._on_date_changed)
         layout.addWidget(self.start_month, 0, 1)
-
+#creates the start year box
         self.start_year = QSpinBox()
+        #sets the range
         self.start_year.setRange(2000, 2100)
+        #sets the width of the box
         self.start_year.setFixedWidth(75)
+        # detects if the value changes
         self.start_year.valueChanged.connect(self._on_date_changed)
+
         layout.addWidget(self.start_year, 0, 2)
 
         layout.setColumnMinimumWidth(3, 20)
@@ -71,7 +76,7 @@ class DateSelector(QGroupBox):
 
         self.end_month = QComboBox()
         self.end_month.addItems(self.months)
-        self.end_month.setFixedWidth(95)
+        self.end_month.setFixedWidth(105)
         self.end_month.currentIndexChanged.connect(self._on_date_changed)
         layout.addWidget(self.end_month, 0, 5)
 
@@ -113,7 +118,7 @@ class DateSelector(QGroupBox):
         self.end_month.setCurrentIndex(end_date.month - 1)
         self._updating = False
 
-    def get_state(self) -> Dict[str, str]:
+    def get_state(self) :
         """
         Get current state as a serializable dictionary.
 

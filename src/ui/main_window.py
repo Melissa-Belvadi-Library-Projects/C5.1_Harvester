@@ -13,14 +13,17 @@ from PyQt6.QtCore import Qt
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.state import AppState, AppSignals
 from core.repositories import ConfigRepository, VendorRepository
-from core.engine import HarvesterEngine, HarvesterConfig
+
 
 # Import UI components
 from ui.components.vendor_frame import VendorFrame
 from ui.components.date_selector import DateSelector
 from ui.dialogs.settings_dialog import SushiConfigDialog
 from ui.dialogs.vendor_dialog import VendorManagementDialog
-from ui.dialogs.progress_dialog import ProgressDialog
+from help_file import get_help_url
+from PyQt6.QtWidgets import QMessageBox
+from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtCore import QUrl
 
 
 class SushiHarvesterGUI(QMainWindow):
@@ -103,6 +106,7 @@ class SushiHarvesterGUI(QMainWindow):
         self.app_state.dates = self.app_state._get_default_dates()
 
     def _setup_ui(self):
+
         """Create and arrange UI components."""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -308,7 +312,7 @@ class SushiHarvesterGUI(QMainWindow):
             self.vendor_repo.save(self.app_state.vendors_data)
 
             QMessageBox.information(self, "Success",
-                                    "All settings saved successfully!")
+                                    "All settings saved")
         except Exception as e:
             self.signals.errorOccurred.emit(f"Failed to save: {e}")
 
@@ -335,7 +339,17 @@ class SushiHarvesterGUI(QMainWindow):
             QMessageBox.critical(self, "Error", error_msg)
             return
 
-        # Create harvester config
+        # Create harvester config - simpler now!
+        from dataclasses import dataclass
+
+        @dataclass
+        class HarvesterConfig:
+            start_date: str
+            end_date: str
+            vendors: list
+            reports: list
+            config: dict
+
         config = HarvesterConfig(
             start_date=self.app_state.dates['start'],
             end_date=self.app_state.dates['end'],
@@ -344,13 +358,15 @@ class SushiHarvesterGUI(QMainWindow):
             config=self.app_state.config
         )
 
-        # Show progress dialog with scrim
-        progress_dialog = ProgressDialog(
-            config=config,
-            app_state=self.app_state,
-            parent=self
-        )
+        # Import the new progress dialog
+        from ui.dialogs.progress_dialog import ProgressDialog
+
+        # Show progress dialog with scrim - it handles everything
+        progress_dialog = ProgressDialog(config=config, parent=self)
         self.show_modal_with_scrim(progress_dialog)
+
+        # When we get here, harvest is complete
+        # Dialog has already shown success/failure messages
 
     def _show_vendors(self):
         """Show vendor management dialog with scrim."""
@@ -381,17 +397,36 @@ class SushiHarvesterGUI(QMainWindow):
 
         self.show_modal_with_scrim(dialog)
 
+
+
     def _show_help(self):
         """Show help information."""
-        QMessageBox.information(
-            self, "Help",
+        help_url = get_help_url('main')
+
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Help")
+        msg.setText(
             "COUNTER 5.1 Harvester\n\n"
-            "1. Select date range for statistics\n"
+            "1. Select date range\n"
             "2. Choose providers and report types\n"
-            "3. Click Start to begin harvesting\n\n"
+            "3. Click start to begin harvesting\n\n"
             "Use Settings to configure paths and options.\n"
             "Use Manage Providers to add/edit provider details."
         )
+
+        #  standard Close button
+        msg.setStandardButtons(QMessageBox.StandardButton.Close)
+
+        # Add a custom "Get More Info" button
+        more_info_button = msg.addButton("Learn More", QMessageBox.ButtonRole.ActionRole)
+
+        # Execute the message box
+        msg.exec()
+
+        # Check if user clicked "Get More Info"
+        if msg.clickedButton() == more_info_button:
+            QDesktopServices.openUrl(QUrl(help_url))
+
 
     def _handle_exit(self):
         """Handle application exit."""

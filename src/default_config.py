@@ -8,4 +8,4 @@ tsv_dir = 'tsv_folders'
 providers_file = 'providers.tsv'
 save_empty_report = False
 always_include_header_metric_types = True
-default_begin = '2025-04'
+default_begin = '2025-01'

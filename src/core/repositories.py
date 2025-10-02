@@ -108,19 +108,40 @@ class VendorRepository:
         self.providers_file = providers_file
         self._file_path: Optional[Path] = None
 
+    from typing import Optional
+    from pathlib import Path
+ #made the find file more extensive in case users place file in a different folder. it should still be able to find it
     def _find_file(self) -> Optional[Path]:
         """Locate the providers file."""
 
 
-        # FIXED: Always search for current providers_file, don't use cached path
+        # Most common, direct paths (CWD and parent)
         search_paths = [
-            Path.cwd() / self.providers_file,
-            Path.cwd().parent / self.providers_file,
-            Path(f"../{self.providers_file}")
+            Path.cwd() / self.providers_file,  # Directly in the CWD
+            Path.cwd().parent / self.providers_file,  # Directly in the parent directory
         ]
 
-        for path in search_paths:
+        # folders to search inside
+        directories_to_check = [
+            Path.cwd(),
+            Path.cwd().parent
+        ]
 
+        # 3. Dynamically find all subdirectories within the main working areas
+        for base_dir in directories_to_check:
+            # The glob '**/' finds all subdirectories (recursively) from the base_dir.
+            # '*' ensures we only get *direct* subfolders if we only want one level deep.
+            for folder in base_dir.iterdir():
+                if folder.is_dir():
+                    # Check for the file inside each subdirectory
+                    subfolder_path = folder / self.providers_file
+                    search_paths.append(subfolder_path)
+
+        # Remove duplicates if any (though unlikely with this structure)
+        search_paths = list(set(search_paths))
+
+        # Starts search
+        for path in search_paths:
             if path.exists():
                 self._file_path = path
                 print(f"DEBUG: Found providers file at: {path}")
@@ -154,6 +175,7 @@ class VendorRepository:
             print(f"DEBUG: File {file_path} does not exist!")
 
         return vendors
+
 
     def save(self, vendors: List[Dict[str, str]]) -> bool:
         """Save vendors to TSV file."""

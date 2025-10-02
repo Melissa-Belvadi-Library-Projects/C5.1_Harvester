@@ -12,6 +12,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPalette, QColor
 
+from help_file import get_help_url
+
 
 class SushiConfigDialog(QDialog):
     """
@@ -23,6 +25,7 @@ class SushiConfigDialog(QDialog):
     configChanged = pyqtSignal(dict)
 
     def __init__(self, initial_state: Optional[Dict[str, Any]] = None, parent=None):
+        #Optional[Dict[str, Any]]mMeans this parameter can either be: A dictionary (Dict[str, Any]) — e.g. config values Or None (no state provided).
         """Initialize with optional initial state."""
         super().__init__(parent)
 
@@ -30,6 +33,8 @@ class SushiConfigDialog(QDialog):
         self.setFixedSize(500, 450)
 
         # State management
+        #state = the current values of the UI and the data it represents.
+
         self._state = initial_state.copy() if initial_state else {}
         self._original_state = {}
         self._updating = False
@@ -70,7 +75,7 @@ class SushiConfigDialog(QDialog):
 
         # Error Log File
         row += 1
-        fields_layout.addWidget(QLabel("Error Log File:"), row, 0,
+        fields_layout.addWidget(QLabel("Info Log File:"), row, 0,
                                 Qt.AlignmentFlag.AlignRight)
         self.fields['error_log_file'] = QLineEdit()
         self.fields['error_log_file'].setFixedWidth(150)
@@ -186,10 +191,10 @@ class SushiConfigDialog(QDialog):
 
     def get_state(self) -> Dict[str, Any]:
         """
-        Get current state as a serializable dictionary.
+        Get current state as a dictionary.
 
         Returns:
-            Dict containing all configuration values
+            Dict containing all configuration values that the user enters
         """
         # Build default_begin from dropdowns
         month_idx = self.month_combo.currentIndex() + 1
@@ -259,19 +264,10 @@ class SushiConfigDialog(QDialog):
         self.save_btn.setEnabled(has_changes)
 
     def _on_providers_file_changed(self):
+
         """Emit configChanged immediately when providers_file changes."""
 
         providers_file = self.fields['providers_file'].text()
-
-
-        # Shallow validation
-        #if providers_file.strip() and not providers_file.lower().endswith(".tsv"):
-           # QMessageBox.warning(
-             #   self,
-             #   "Invalid File",
-             #   "Providers file must be a .tsv file."
-           # )
-           # return
 
         # Build current config and emit it
         config = self.get_state()
@@ -283,16 +279,6 @@ class SushiConfigDialog(QDialog):
         """Save configuration changes."""
         config = self.get_state()
 
-        # Validate providers file
-        providers_file = config.get("providers_file", "")
-        if providers_file.strip() and not providers_file.lower().endswith(".tsv"):
-            QMessageBox.warning(
-                self,
-                "Invalid File",
-                "Providers file must be a .tsv file."
-            )
-            return  # stop saving
-
         # Emit signal instead of saving directly
         self.configChanged.emit(config)
 
@@ -301,7 +287,7 @@ class SushiConfigDialog(QDialog):
         self.save_btn.setEnabled(False)
 
         QMessageBox.information(self, "Success",
-                                "Configuration saved successfully!")
+                                "Configuration saved")
 
     def _reset_to_defaults(self):
         """Reset all fields to default values."""
@@ -329,6 +315,7 @@ class SushiConfigDialog(QDialog):
 
             # Try to find default_config.py specifically
             from pathlib import Path
+
             search_paths = [
                 Path(__file__).parent.parent / "default_config.py",
                 Path(__file__).parent.parent.parent / "default_config.py",
@@ -385,11 +372,12 @@ class SushiConfigDialog(QDialog):
 
     def _show_help(self):
         """Show help documentation."""
-        help_url = "https://github.com/example/docs/settings.md"
+
+        help_url = get_help_url('settings')
 
         reply = QMessageBox.question(
             self, "Settings Help",
-            "Open help documentation in browser?",
+            "Open Settings Help documentation in browser?",
             QMessageBox.StandardButton.Yes |
             QMessageBox.StandardButton.No
         )

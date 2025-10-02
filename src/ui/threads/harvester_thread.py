@@ -41,68 +41,37 @@ class HarvesterThread(QThread):
     def run(self):
         """Execute harvester in background thread."""
         try:
-            # Create harvester with callbacks
-            self.harvester = HarvesterIntegration(
-                progress_callback=self._handle_progress,
-                status_callback=self._handle_status
-            )
-
-            # Convert GUI config to harvester request
-            request = adapt_gui_config(self.config)
-
-            # Log configuration
             self.log_signal.emit("=" * 60)
             self.log_signal.emit("COUNTER 5.1 Harvester Started")
-            self.log_signal.emit(f"Date Range: {request.begin_date} to {request.end_date}")
-            self.log_signal.emit(f"Vendors: {', '.join(request.selected_vendors)}")
-            self.log_signal.emit(
-                f"Reports: {', '.join(request.selected_reports) if request.selected_reports else 'All supported'}")
-            if request.single_report_type:
-                self.log_signal.emit(f"Single Report Type: {request.single_report_type}")
+            self.log_signal.emit(f"Date Range: {self.begin_date} to {self.end_date}")
+            self.log_signal.emit(f"Vendors: {', '.join(self.vendors) if self.vendors else 'All'}")
+            self.log_signal.emit(f"Reports: {', '.join(self.reports)}")
             self.log_signal.emit("=" * 60)
+            self.log_signal.emit("")
 
-            # Run the harvester
-            results = self.harvester.run(request)
+            # Call the backend directly
+            results = getcounter.run_harvester(
+                begin_date=self.begin_date,
+                end_date=self.end_date,
+                selected_vendors=self.vendors,
+                selected_reports=self.reports,
+                progress_callback=self._handle_progress,
+                is_cancelled_callback=lambda: self._is_cancelled
+            )
 
-            # Emit results
+            # Emit results - success means no errors
             if self._is_cancelled:
-                self.log_signal.emit("\n⚠Harvest cancelled by user")
+                self.log_signal.emit("\n⚠ Harvest cancelled by user")
                 self.finished_signal.emit(False, {'cancelled': True})
             else:
-                # Log summary
-                self.log_signal.emit("\n" + "=" * 60)
-                self.log_signal.emit("HARVEST COMPLETE - SUMMARY")
-                self.log_signal.emit("=" * 60)
-                self.log_signal.emit(f" Reports fetched: {results.get('reports_fetched', 0)}")
-                self.log_signal.emit(f" Reports failed: {results.get('reports_failed', 0)}")
-
-                if results.get('json_files'):
-                    self.log_signal.emit(f"\nJSON files created: {len(results['json_files'])}")
-                    for f in results['json_files'][:5]:  # Show first 5
-                        self.log_signal.emit(f"   - {Path(f).name}")
-                    if len(results['json_files']) > 5:
-                        self.log_signal.emit(f"   ... and {len(results['json_files']) - 5} more")
-
-                if results.get('tsv_files'):
-                    self.log_signal.emit(f"\n TSV files created: {len(results['tsv_files'])}")
-                    for f in results['tsv_files'][:5]:  # Show first 5
-                        self.log_signal.emit(f"   - {Path(f).name}")
-                    if len(results['tsv_files']) > 5:
-                        self.log_signal.emit(f"   ... and {len(results['tsv_files']) - 5} more")
-
-                if results.get('errors'):
-                    self.log_signal.emit(f"\n⚠Errors encountered:")
-                    for err in results['errors']:
-                        self.log_signal.emit(f"   - {err}")
-
-                self.log_signal.emit("=" * 60)
-
-                self.finished_signal.emit(results.get('success', False), results)
+                has_errors = bool(results.get('errors'))
+                self.finished_signal.emit(not has_errors, results)  # Success if no errors
 
         except Exception as e:
-            self.log_signal.emit(f" Error: {str(e)}")
+            self.log_signal.emit(f"\n Error: {str(e)}")
+            import traceback
+            self.log_signal.emit(traceback.format_exc())
             self.finished_signal.emit(False, {'error': str(e)})
-
     def cancel(self):
         """Cancel the running harvest."""
         self._is_cancelled = True
