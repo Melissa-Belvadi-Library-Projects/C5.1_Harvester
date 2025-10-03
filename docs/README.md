@@ -1,4 +1,4 @@
-Documentation about how to install and use this program is in this directory.
+Documentation about how to install and use this program is in this directory. If you already know about COUNTER 5.1, just [start here](table_of_contents.md) to get going using this harvester.
 
 Here is a quick intro to some of the jargon involved. This is intended for librarians, so don't be intimidated!
 
