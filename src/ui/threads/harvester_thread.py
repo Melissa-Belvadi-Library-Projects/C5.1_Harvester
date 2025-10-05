@@ -11,9 +11,6 @@ from PyQt6.QtCore import QThread, pyqtSignal
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "core"))
 
-from core.harvester_integration import HarvesterIntegration, HarvesterRequest, adapt_gui_config
-
-
 class HarvesterThread(QThread):
     """
     Background thread for running the COUNTER harvester.
@@ -22,8 +19,7 @@ class HarvesterThread(QThread):
 
     # Signals for thread-safe communication
     log_signal = pyqtSignal(str)  # Log messages
-    status_signal = pyqtSignal(str)  # Status updates
-    progress_signal = pyqtSignal(int)  # Progress percentage
+    #progress_signal = pyqtSignal(int)  # Progress percentage
     finished_signal = pyqtSignal(bool, dict)  # success, results
 
     def __init__(self, config):
@@ -88,7 +84,7 @@ class HarvesterThread(QThread):
                 # Extract percentage from messages like "[50%] Fetching..."
                 pct_str = message.split("[")[1].split("%")[0]
                 percentage = int(float(pct_str))
-                self.progress_signal.emit(percentage)
+               # self.progress_signal.emit(percentage)
             except:
                 pass
 

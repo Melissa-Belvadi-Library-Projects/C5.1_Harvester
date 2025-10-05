@@ -1,6 +1,7 @@
 """Main application window with centralized state management and scrim overlay system."""
 
 import sys
+import uuid
 from pathlib import Path
 from typing import Optional
 from PyQt6.QtWidgets import (
@@ -24,6 +25,7 @@ from help_file import get_help_url
 from PyQt6.QtWidgets import QMessageBox
 from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtCore import QUrl
+
 
 
 class SushiHarvesterGUI(QMainWindow):
@@ -89,18 +91,27 @@ class SushiHarvesterGUI(QMainWindow):
         return result
 
     def _load_initial_state(self):
+
         """Load initial configuration and vendor data."""
         # Load configuration
         config = self.config_repo.load()
         self.app_state.config = config
 
+
         # Update vendor repository with config
         if 'providers_file' in config:
             self.vendor_repo.providers_file = config['providers_file']
 
-        # Load vendors
+        # Load vendors in the main window
         vendors_data = self.vendor_repo.load()
+
+#ensures each vendor has its unique ID
+        for vendor in vendors_data:
+            if 'Id' not in vendor or not vendor.get('Id'):
+                vendor['Id'] = str(uuid.uuid4())
+
         self.app_state.vendors_data = vendors_data
+
 
         # Set default dates based on config
         self.app_state.dates = self.app_state._get_default_dates()
@@ -151,22 +162,26 @@ class SushiHarvesterGUI(QMainWindow):
 
         main_layout.addLayout(selection_layout)
 
-        # === Control Buttons ===
+
+        # Control Buttons
         first_button_layout = QHBoxLayout()
+
+        # Push everything to the right
+        first_button_layout.addStretch()
 
         # Start button
         self.start_button = QPushButton("Start")
         self.start_button.clicked.connect(self._on_start)
         first_button_layout.addWidget(self.start_button)
 
-        first_button_layout.addStretch(3)
+        first_button_layout.addSpacing(15)  # Space between Start and Manage Providers
 
         # Manage Providers button
         self.vendors_button = QPushButton("Manage Providers")
         self.vendors_button.clicked.connect(self._show_vendors)
         first_button_layout.addWidget(self.vendors_button)
 
-        first_button_layout.addSpacing(5)
+        first_button_layout.addSpacing(15)  # Space between Manage Providers and Settings
 
         # Settings button
         self.settings_button = QPushButton("Settings")
@@ -176,7 +191,7 @@ class SushiHarvesterGUI(QMainWindow):
         main_layout.addLayout(first_button_layout)
         main_layout.addSpacing(15)
 
-        # === Exit Button Row ===
+        #  Exit Button Row
         second_button_layout = QHBoxLayout()
         second_button_layout.addStretch()
 
@@ -188,6 +203,7 @@ class SushiHarvesterGUI(QMainWindow):
 
     def _connect_signals(self):
         """Wire up signals between components and state."""
+
         # Date selector signals
         self.date_selector.dateRangeChanged.connect(self._on_date_range_changed)
 
@@ -211,6 +227,7 @@ class SushiHarvesterGUI(QMainWindow):
         # Update vendor list
         vendor_names = [v['Name'] for v in self.app_state.vendors_data
                         if v.get('Name', '').strip()]
+
 
         # Check if vendor_frame has update_items method, otherwise recreate
         if hasattr(self.vendor_frame, 'update_items'):
@@ -279,6 +296,11 @@ class SushiHarvesterGUI(QMainWindow):
 
         # Update state
         self.app_state.vendors_data = vendors_data
+
+#ensures all vendors have id before saving
+        for vendor in vendors_data:
+            if 'Id' not in vendor or not vendor.get('Id'):
+                vendor['Id'] = str(uuid.uuid4())
 
         # Save to file
         self.vendor_repo.save(vendors_data)
@@ -409,9 +431,8 @@ class SushiHarvesterGUI(QMainWindow):
             "COUNTER 5.1 Harvester\n\n"
             "1. Select date range\n"
             "2. Choose providers and report types\n"
-            "3. Click start to begin harvesting\n\n"
-            "Use Settings to configure paths and options.\n"
-            "Use Manage Providers to add/edit provider details."
+            "3. Click start to begin harvesting\n"
+
         )
 
         #  standard Close button

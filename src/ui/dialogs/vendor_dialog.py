@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
-
+import uuid
 from help_file import get_help_url
 
 
@@ -224,6 +224,7 @@ class VendorManagementDialog(QDialog):
         for vendor in self._vendors_data:
             if vendor.get('Name', '').strip():
                 item = QListWidgetItem(vendor['Name'])
+                item.setData(Qt.ItemDataRole.UserRole, vendor.get('Id'))
                 self.vendor_list.addItem(item)
 
     def toggle_details_panel(self, enabled: bool):
@@ -234,6 +235,8 @@ class VendorManagementDialog(QDialog):
     def _on_vendor_selected(self, item: QListWidgetItem):
         """Handle vendor selection from list."""
         if self._has_unsaved_changes:
+            if not self._validate_current_vendor():
+                return
             reply = QMessageBox.question(
                 self, "Unsaved Changes",
                 "Save changes to current provider?",
@@ -246,10 +249,10 @@ class VendorManagementDialog(QDialog):
                     return
 
         self.toggle_details_panel(True)
-
+        vendor_id = item.data(Qt.ItemDataRole.UserRole)
         vendor_name = item.text()
         for vendor in self._vendors_data:
-            if vendor.get('Name') == vendor_name:
+            if vendor.get('Id') == vendor_id:
                 self._current_vendor = vendor
                 self._populate_form(vendor)
                 self.remove_btn.setEnabled(True)
@@ -272,6 +275,7 @@ class VendorManagementDialog(QDialog):
         self.toggle_details_panel(True)
 
         new_vendor = {
+            'Id': str(uuid.uuid4()),
             'Name': '',
             'Base_URL': '',
             'Customer_ID': '',
@@ -286,6 +290,7 @@ class VendorManagementDialog(QDialog):
         self._vendors_data.append(new_vendor)
 
         item = QListWidgetItem(new_vendor['Name'])
+        item.setData(Qt.ItemDataRole.UserRole, new_vendor['Id']) #ID
         self.vendor_list.addItem(item)
         self.vendor_list.setCurrentItem(item)
 
@@ -310,10 +315,10 @@ class VendorManagementDialog(QDialog):
         )
 
         if reply == QMessageBox.StandardButton.Yes:
-            vendor_name = current_item.text()
+            vendor_id = current_item.data(Qt.ItemDataRole.UserRole)
             self._vendors_data = [
                 v for v in self._vendors_data
-                if v.get('Name') != vendor_name
+                if v.get('Id') != vendor_id
             ]
 
             row = self.vendor_list.row(current_item)
@@ -387,6 +392,17 @@ class VendorManagementDialog(QDialog):
         if not self._validate_current_vendor():
             return False
 
+        new_name = self.name_edit.text().strip()
+        # Check if name already exists (excluding current vendor)
+        for vendor in self._vendors_data:
+            if vendor != self._current_vendor and vendor.get('Name') == new_name:
+                QMessageBox.warning(
+                    self, "Duplicate Name",
+                    f"A provider named '{new_name}' already exists.\n"
+                    f"Please use a unique name."
+                )
+                return False
+
         # Update vendor data
         self._current_vendor['Name'] = self.name_edit.text().strip()
         self._current_vendor['Base_URL'] = self.base_url_edit.text().strip()
@@ -398,6 +414,7 @@ class VendorManagementDialog(QDialog):
         self._current_vendor['Delay'] = self.delay_edit.text().strip()
         self._current_vendor['Retry'] = self.retry_edit.text().strip()
 
+
         # Update list item
         current_item = self.vendor_list.currentItem()
         if current_item:
@@ -408,25 +425,28 @@ class VendorManagementDialog(QDialog):
 
         return True
 
-    def _validate_current_vendor(self) -> bool:
+    def _validate_current_vendor(self) :
         """Validate current vendor data."""
         name = self.name_edit.text().strip()
         base_url = self.base_url_edit.text().strip()
         customer_id = self.customer_id_edit.text().strip()
 
+        missing_fields = []
         if not name:
-            QMessageBox.warning(self, "Validation Error",
-                                "Provider name is required!")
-            return False
+            missing_fields.append("Name")
 
         if not base_url:
-            QMessageBox.warning(self, "Validation Error",
-                                "Base URL is required!")
-            return False
+            missing_fields.append("Base URL")
 
         if not customer_id:
-            QMessageBox.warning(self, "Validation Error",
-                                "Customer ID is required!")
+            missing_fields.append("Customer ID")
+
+        if missing_fields:
+            QMessageBox.warning(
+                self, "Validation Error",
+                f"The following required fields are missing:\n\n" +
+                "\n".join(f"• {field}" for field in missing_fields)
+            )
             return False
 
         return True
@@ -435,11 +455,10 @@ class VendorManagementDialog(QDialog):
         """Save all vendors and emit signal."""
         if self._has_unsaved_changes:
             if not self._save_current_vendor():
-                return
+                return False
 
         self._emit_vendors_changed()
-        QMessageBox.information(self, "Success",
-                                "All providers saved")
+        return True
 
     def _emit_vendors_changed(self):
         """Emit vendor change signals."""
@@ -451,6 +470,10 @@ class VendorManagementDialog(QDialog):
     def _handle_close(self):
         """Handle close button click."""
         if self._has_unsaved_changes:
+
+            if not self._validate_current_vendor():
+                return
+
             msg_box = QMessageBox(self)
             msg_box.setWindowTitle("Unsaved Changes")
             msg_box.setText("You have unsaved changes.")
@@ -465,8 +488,8 @@ class VendorManagementDialog(QDialog):
             msg_box.exec()
 
             if msg_box.clickedButton() == save_btn:
-                self._save_all()
-                self.accept()
+                if self._save_all():
+                    self.accept()
             elif msg_box.clickedButton() == discard_btn:
                 self.reject()
         else:

@@ -62,7 +62,7 @@ class SushiConfigDialog(QDialog):
         fields_layout.addWidget(QLabel("SQLite Database File:"), row, 0,
                                 Qt.AlignmentFlag.AlignRight)
         self.fields['sqlite_filename'] = QLineEdit()
-        self.fields['sqlite_filename'].setFixedWidth(150)
+        self.fields['sqlite_filename'].setFixedWidth(170)
         fields_layout.addWidget(self.fields['sqlite_filename'], row, 1)
 
         # Data Table Name
@@ -70,7 +70,7 @@ class SushiConfigDialog(QDialog):
         fields_layout.addWidget(QLabel("Data Table Name:"), row, 0,
                                 Qt.AlignmentFlag.AlignRight)
         self.fields['data_table'] = QLineEdit()
-        self.fields['data_table'].setFixedWidth(150)
+        self.fields['data_table'].setFixedWidth(170)
         fields_layout.addWidget(self.fields['data_table'], row, 1)
 
         # Error Log File
@@ -78,7 +78,7 @@ class SushiConfigDialog(QDialog):
         fields_layout.addWidget(QLabel("Info Log File:"), row, 0,
                                 Qt.AlignmentFlag.AlignRight)
         self.fields['error_log_file'] = QLineEdit()
-        self.fields['error_log_file'].setFixedWidth(150)
+        self.fields['error_log_file'].setFixedWidth(170)
         fields_layout.addWidget(self.fields['error_log_file'], row, 1)
 
         # JSON Directory
@@ -86,7 +86,7 @@ class SushiConfigDialog(QDialog):
         fields_layout.addWidget(QLabel("JSON Directory:"), row, 0,
                                 Qt.AlignmentFlag.AlignRight)
         self.fields['json_dir'] = QLineEdit()
-        self.fields['json_dir'].setFixedWidth(150)
+        self.fields['json_dir'].setFixedWidth(170)
         fields_layout.addWidget(self.fields['json_dir'], row, 1)
 
         # TSV Directory
@@ -94,7 +94,7 @@ class SushiConfigDialog(QDialog):
         fields_layout.addWidget(QLabel("TSV Directory:"), row, 0,
                                 Qt.AlignmentFlag.AlignRight)
         self.fields['tsv_dir'] = QLineEdit()
-        self.fields['tsv_dir'].setFixedWidth(150)
+        self.fields['tsv_dir'].setFixedWidth(170)
         fields_layout.addWidget(self.fields['tsv_dir'], row, 1)
 
         # Providers File
@@ -103,7 +103,7 @@ class SushiConfigDialog(QDialog):
                                 Qt.AlignmentFlag.AlignRight)
         self.fields['providers_file'] = QLineEdit()
         self.fields['providers_file'].editingFinished.connect(self._on_providers_file_changed) #updates the main window providers once saved
-        self.fields['providers_file'].setFixedWidth(150)
+        self.fields['providers_file'].setFixedWidth(170)
         fields_layout.addWidget(self.fields['providers_file'], row, 1)
 
         # Save Empty Reports checkbox
@@ -260,8 +260,15 @@ class SushiConfigDialog(QDialog):
 
         # Enable save button if values changed
         current_state = self.get_state()
-        has_changes = current_state != self._original_state
-        self.save_btn.setEnabled(has_changes)
+        has_changes = current_state != self._original_state # notices if there are some changes  with the intial state
+
+        #enables  that the user cannot save an empty field
+        required = ["sqlite_filename", "data_table", "providers_file","error_log_file", "json_dir", "tsv_dir"]
+        all_filled = all(current_state[field].strip() for field in required)
+
+
+        self.save_btn.setEnabled(has_changes and all_filled)
+
 
     def _on_providers_file_changed(self):
 
@@ -272,7 +279,7 @@ class SushiConfigDialog(QDialog):
         # Build current config and emit it
         config = self.get_state()
 
-        self.configChanged.emit(config)
+        #self.configChanged.emit(config) removed automatic emission
 
 
     def _save_changes(self):
@@ -285,20 +292,24 @@ class SushiConfigDialog(QDialog):
         # Update original state
         self._original_state = config.copy()
         self.save_btn.setEnabled(False)
-
-        QMessageBox.information(self, "Success",
-                                "Configuration saved")
+        # note the changeshappen with the method on_field_changed
 
     def _reset_to_defaults(self):
         """Reset all fields to default values."""
-        reply = QMessageBox.question(
-            self, "Reset to Defaults",
-            "Reset all settings to their default values?",
-            QMessageBox.StandardButton.Yes |
-            QMessageBox.StandardButton.No
-        )
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Reset to Defaults")
+        msg_box.setText("All settings reset to their to their default values\n"
+                        "Do you want to reset?")
+        #msg_box.setIcon(QMessageBox.Icon.Question)
 
-        if reply == QMessageBox.StandardButton.Yes:
+        # Adds custom clean buttons (no mnemonics, no underlines)
+        yes_btn = msg_box.addButton("Yes", QMessageBox.ButtonRole.YesRole)
+        no_btn = msg_box.addButton("No", QMessageBox.ButtonRole.NoRole)
+
+        msg_box.setDefaultButton(no_btn)
+        msg_box.exec()
+
+        if msg_box.clickedButton() == yes_btn:
             defaults = self._get_defaults()
             self.set_state(defaults)
             self._on_field_changed()
@@ -307,10 +318,10 @@ class SushiConfigDialog(QDialog):
     def _get_defaults(self) -> Dict[str, Any]:
         """Get default configuration values from default_config.py file."""
         try:
-            # Import the ConfigRepository that already handles config file parsing
+            # Imports the ConfigRepository that already handles config file parsing
             from core.repositories import ConfigRepository
 
-            # Create a repository pointing to default_config.py
+            # Create a repository pointing to default_config.py( almost like an arrow looking to fetch info from it)
             default_repo = ConfigRepository()
 
             # Try to find default_config.py specifically
@@ -336,7 +347,7 @@ class SushiConfigDialog(QDialog):
             return {
                 'sqlite_filename': 'counterdata.db',
                 'data_table': 'usage_data',
-                'error_log_file': 'errorlog.txt',
+                'error_log_file': 'infolog.txt',
                 'json_dir': 'json_folder',
                 'tsv_dir': 'tsv_folder',
                 'providers_file': 'providers.tsv',
@@ -347,12 +358,39 @@ class SushiConfigDialog(QDialog):
 
     def _handle_close(self):
         """Handle close button click."""
+
+        FIELD_LABELS = {
+            "sqlite_filename": "SQLite Database File",
+            "data_table": "Data Table Name",
+            "error_log_file": "Info Log File",
+            "json_dir": "JSON Directory",
+            "tsv_dir": "TSV Directory",
+            "providers_file": "Providers File"
+        }
+
+        required = ["sqlite_filename", "data_table", "providers_file", "error_log_file", "json_dir", "tsv_dir"]
+
+        current_state = self.get_state()
+        empty_fields = [field for field in required if not current_state[field].strip()]
+        missing_labels = [FIELD_LABELS.get(field, field) for field in empty_fields]
+
+
+        if empty_fields:
+            # Notifies user which fields are missing
+            QMessageBox.information(
+                self, "Missing Required Fields",
+                f"You must fill these fields before closing:\n"
+                f"{', '.join(missing_labels)}"
+            )
+            return  # Don’t close at all
+
+
         if self.save_btn.isEnabled():
             msg_box = QMessageBox(self)
             msg_box.setWindowTitle("Unsaved Changes")
-            msg_box.setText("You have unsaved changes.")
-            msg_box.setInformativeText("What would you like to do?")
-            msg_box.setIcon(QMessageBox.Icon.Question)
+            msg_box.setText("You have unsaved changes\n"
+                            "What would you like to do?")
+            #msg_box.setIcon(QMessageBox.Icon.Question)
 
             # Add custom buttons with clear text
             save_close_btn = msg_box.addButton("Save and Close", QMessageBox.ButtonRole.AcceptRole)
@@ -371,18 +409,23 @@ class SushiConfigDialog(QDialog):
             self.reject()
 
     def _show_help(self):
-        """Show help documentation."""
+        """Show help documentation for settings dialog."""
 
         help_url = get_help_url('settings')
 
-        reply = QMessageBox.question(
-            self, "Settings Help",
-            "Open Settings Help documentation in browser?",
-            QMessageBox.StandardButton.Yes |
-            QMessageBox.StandardButton.No
-        )
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Settings Help")
+        msg_box.setText("Open Settings Help documentation in browser?")
+        #msg_box.setIcon(QMessageBox.Icon.Question)
 
-        if reply == QMessageBox.StandardButton.Yes:
+
+        yes_btn = msg_box.addButton("Yes", QMessageBox.ButtonRole.YesRole)
+        no_btn = msg_box.addButton("No", QMessageBox.ButtonRole.NoRole)
+
+        msg_box.setDefaultButton(yes_btn)
+        msg_box.exec()
+
+        if msg_box.clickedButton() == yes_btn:
             try:
                 webbrowser.open(help_url)
             except Exception as e:

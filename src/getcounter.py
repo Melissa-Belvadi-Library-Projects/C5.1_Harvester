@@ -118,7 +118,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
                     break
 
                 log_error(f"INFO: Retrieving report: {provider_name}: {report_id.upper()}: {report_url}")
-                log(f"Retrieving report: {provider_name}: {report_id.upper()}")
+                log(f"Retrieving report: {provider_name}: {report_id.upper()}") # do this line for pause..instead of retrieve ..use completed
 
                 try:
                     process_item_details(provider_info, report_id, report_url)
@@ -127,9 +127,10 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
                     error_msg = f"Error processing {provider_name}:{report_id}: {str(e)}"
                     log_error(f"ERROR: {error_msg}\n{traceback.format_exc()}")
                     results['errors'].append(error_msg)
-
-
-        log(f"Done all providers, all reports.")
+                #around here ..insert qinfobox
+                # if stop signals , write to progress report ,..completed provider ... take out warning ..only write for the last provder and report  collected
+        log(f"Retrieving report: {provider_name}: {report_id.upper()}")
+        log(f"Completed all providers, all reports.")
         log(f"Check {error_log_file} for problems/reports that failed/exceptions")
 
     except Exception as e:

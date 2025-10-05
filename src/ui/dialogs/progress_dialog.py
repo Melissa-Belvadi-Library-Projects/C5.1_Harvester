@@ -26,7 +26,6 @@ class HarvesterThread(QThread):
 
     # Signals for thread-safe communication
     log_signal = pyqtSignal(str)  # Log messages
-    progress_signal = pyqtSignal(int)  # Progress percentage (0-100)
     finished_signal = pyqtSignal(bool, dict)  # success, results
 
     def __init__(self, begin_date, end_date, vendors, reports):
@@ -49,12 +48,12 @@ class HarvesterThread(QThread):
     def run(self):
         """Execute harvester in background thread."""
         try:
-            self.log_signal.emit("=" * 60)
+            self.log_signal.emit("-" * 60)
             self.log_signal.emit("COUNTER 5.1 Harvester Started")
             self.log_signal.emit(f"Date Range: {self.begin_date} to {self.end_date}")
             self.log_signal.emit(f"Vendors: {', '.join(self.vendors) if self.vendors else 'All'}")
             self.log_signal.emit(f"Reports: {', '.join(self.reports)}")
-            self.log_signal.emit("=" * 60)
+            self.log_signal.emit("-" * 60)
             self.log_signal.emit("")
 
             # Call the backend directly
@@ -69,7 +68,7 @@ class HarvesterThread(QThread):
 
             # Emit results
             if self._is_cancelled:
-                self.log_signal.emit("\n⚠ Harvest cancelled by user")
+                self.log_signal.emit("\n Harvest cancelled by user")
                 self.finished_signal.emit(False, {'cancelled': True})
             else:
                 self.finished_signal.emit(results.get('success', False), results)
@@ -83,20 +82,11 @@ class HarvesterThread(QThread):
     def cancel(self):
         """Cancel the running harvest."""
         self._is_cancelled = True
-        self.log_signal.emit("\n⚠ Cancellation requested...")
+        self.log_signal.emit("\n Cancellation requested...")
 
     def _handle_progress(self, message):
         """Handle progress messages from harvester backend."""
         self.log_signal.emit(message)
-
-        # Try to extract percentage from messages like "[50%] Fetching..."
-        if "%" in message and "[" in message:
-            try:
-                pct_str = message.split("[")[1].split("%")[0]
-                percentage = int(float(pct_str))
-                self.progress_signal.emit(percentage)
-            except:
-                pass
 
 
 class ProgressDialog(QDialog):
@@ -140,20 +130,11 @@ class ProgressDialog(QDialog):
         #title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         #layout.addWidget(title_label)
 
-        # Status label
-        self.status_label = QLabel("Preparing to start...")
-        self.status_label.setFont(QFont("Arial", 10))
-        layout.addWidget(self.status_label)
 
-        # Progress bar
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(0)
-        self.progress_bar.setTextVisible(True)
-        layout.addWidget(self.progress_bar)
+
 
         # Log text area
-        log_label = QLabel("Harvester Log:")
+        log_label = QLabel("Progress Log:")
         log_label.setFont(QFont("Arial", 9, QFont.Weight.Bold))
         layout.addWidget(log_label)
 
@@ -172,7 +153,7 @@ class ProgressDialog(QDialog):
         button_layout = QHBoxLayout()
 
         # Save Log button
-        self.save_log_button = QPushButton("Save Log")
+        self.save_log_button = QPushButton("Save Progress Log")
         self.save_log_button.setEnabled(False)
         self.save_log_button.clicked.connect(self._save_log)
         button_layout.addWidget(self.save_log_button)
@@ -196,7 +177,6 @@ class ProgressDialog(QDialog):
 
     def _start_harvester(self):
         """Start the harvester in a background thread."""
-        self.status_label.setText("Starting harvester...")
 
         # Create and configure thread
         self.harvester_thread = HarvesterThread(
@@ -208,12 +188,10 @@ class ProgressDialog(QDialog):
 
         # Connect signals
         self.harvester_thread.log_signal.connect(self._log_message)
-        self.harvester_thread.progress_signal.connect(self._update_progress)
         self.harvester_thread.finished_signal.connect(self._on_finished)
 
         # Start thread
         self.harvester_thread.start()
-        self.status_label.setText("Harvester running...")
 
     def _log_message(self, message: str):
         """Add message to log display."""
@@ -221,11 +199,6 @@ class ProgressDialog(QDialog):
         # Auto-scroll to bottom
         scrollbar = self.log_text.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
-
-    def _update_progress(self, percentage: int):
-        """Update progress bar."""
-        self.progress_bar.setValue(percentage)
-        self.status_label.setText(f"Processing... {percentage}%")
 
     def _stop_harvester(self):
         """Stop the running harvester."""
@@ -239,7 +212,6 @@ class ProgressDialog(QDialog):
             )
 
             if reply == QMessageBox.StandardButton.Yes:
-                self.status_label.setText("Stopping harvester...")
                 self.harvester_thread.cancel()
                 self.stop_button.setEnabled(False)
 
@@ -254,8 +226,6 @@ class ProgressDialog(QDialog):
 
         if results.get('cancelled'):
             # User cancelled
-            self.status_label.setText("Harvester cancelled by user")
-            self.progress_bar.setValue(0)
             self._log_message("\n" + "=" * 60)
             self._log_message("HARVESTER CANCELLED")
             self._log_message("=" * 60)
@@ -268,9 +238,6 @@ class ProgressDialog(QDialog):
 
         elif results.get('errors'):
             # Had errors
-            self.status_label.setText("Harvester completed with errors")
-            self.progress_bar.setValue(100)
-
             self._log_message("\n" + "=" * 60)
             self._log_message("HARVESTER COMPLETED WITH ERRORS")
             self._log_message("=" * 60)
@@ -288,9 +255,6 @@ class ProgressDialog(QDialog):
 
         else:
             # Success - no errors
-            self.status_label.setText("Harvester completed successfully!")
-            self.progress_bar.setValue(100)
-
             QMessageBox.information(
                 self,
                 "Success",

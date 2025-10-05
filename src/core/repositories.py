@@ -90,7 +90,7 @@ default_begin = '{default_begin}'
         return {
             'sqlite_filename': 'counterdata.db',
             'data_table': 'usage_data',
-            'error_log_file': 'errorlog.txt',
+            'error_log_file': 'infolog.txt',
             'json_dir': 'json_folder',
             'tsv_dir': 'tsv_folder',
             'providers_file': 'providers.tsv',
