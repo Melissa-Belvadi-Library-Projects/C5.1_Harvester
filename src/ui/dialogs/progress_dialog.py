@@ -67,7 +67,7 @@ class HarvesterThread(QThread):
 
             # Emit results
             if self._is_cancelled:
-                self.log_signal.emit("\n Harvest cancelled by user")
+                self.log_signal.emit("\n Harvest cancelled-still testing")
                 self.finished_signal.emit(False, {'cancelled': True})
             else:
                 self.finished_signal.emit(results.get('success', False), results)

@@ -27,7 +27,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
     """
 
 
-    # Import config INSIDE the function to get fresh values each time
+    #  refresh values each time..provider file was loading older one
     import importlib
     import current_config
     importlib.reload(current_config)  # Force Python to re-read the file
@@ -43,8 +43,6 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
         always_include_header_metric_types
     )
 
-    print(f"DEBUG getcounter: Using providers_file = {providers_file}")
-    print(f"DEBUG getcounter: Looking for vendors: {selected_vendors}")
 
     # Set the callback for logger to use
     set_progress_callback(progress_callback)
@@ -82,7 +80,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
             'vendors': selected_vendors
         }
 
-        #  callbacks for load_providers, these are the functions
+        #  callback functions for provider loading errors/warnings..used them instead of signals
         def error_callback(msg):
             log(f"ERROR: {msg}")
             results['errors'].append(msg)
@@ -149,7 +147,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
                     error_msg = f"Error processing {provider_name}:{report_id}: {str(e)}"
                     log_error(f"ERROR: {error_msg}\n{traceback.format_exc()}")
                     results['errors'].append(error_msg)
-                #around here ..insert qinfobox
+                #around here ..insert infobox
                 # if stop signals , write to progress report ,..completed provider ... take out warning ..only write for the last provder and report  collected
         #log(f"Retrieving report: {provider_name}: {report_id.upper()}")
         log(f"Completed all providers, all reports.")

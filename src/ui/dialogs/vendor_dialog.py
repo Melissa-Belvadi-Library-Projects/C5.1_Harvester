@@ -21,8 +21,6 @@ class VendorManagementDialog(QDialog):
 
     """
 
-
-
     # Signal emitted when vendors list changes
     vendorsChanged = pyqtSignal(list)  # List of vendor names
     vendorsDataChanged = pyqtSignal(object)  # Full vendor data
@@ -232,7 +230,6 @@ class VendorManagementDialog(QDialog):
             if vendor.get('Name', '').strip():
                 item = QListWidgetItem(vendor['Name'])
                 vendor_id = vendor.get('Id')
-                print(f"DEBUG: Adding {vendor['Name']} with ID {vendor_id}")
                 item.setData(Qt.ItemDataRole.UserRole, vendor.get('Id'))
                 self.vendor_list.addItem(item)
 
@@ -244,18 +241,13 @@ class VendorManagementDialog(QDialog):
     def _on_vendor_selected(self, item: QListWidgetItem):
         """Handle vendor selection from list."""
 
-
         vendor_id = item.data(Qt.ItemDataRole.UserRole)
-        vendor_name = item.text()
 
-        print(f"DEBUG: User clicked on: {vendor_name}")
-        print(f"DEBUG: Looking for vendor with ID: {vendor_id}")
 
         if self._has_unsaved_changes:
 
             if not self._validate_current_vendor():
                 return
-
 
             reply = QMessageBox.question(
                 self, "Unsaved Changes",
@@ -270,12 +262,9 @@ class VendorManagementDialog(QDialog):
 
         self.toggle_details_panel(True)
 
-
         found = False
         for vendor in self._vendors_data:
-            print(f"DEBUG: Checking vendor {vendor.get('Name')} with ID {vendor.get('Id')}")
             if vendor.get('Id') == vendor_id:
-                print(f"DEBUG: MATCH FOUND - Loading {vendor.get('Name')}")
                 self._current_vendor = vendor
                 self._populate_form(vendor)
                 self.remove_btn.setEnabled(True)
@@ -333,9 +322,6 @@ class VendorManagementDialog(QDialog):
         if not current_item:
             return
 
-        print(f"DEBUG: Before removal - Total vendors: {len(self._vendors_data)}")
-        print(f"DEBUG: Vendor to remove: {current_item.text()}")
-
         reply = QMessageBox.question(
             self, "Confirm Removal",
             f"Remove '{current_item.text()}'?",
@@ -345,7 +331,7 @@ class VendorManagementDialog(QDialog):
 
         if reply == QMessageBox.StandardButton.Yes:
             vendor_id = current_item.data(Qt.ItemDataRole.UserRole)
-            print(f"DEBUG: Removing vendor with ID: {vendor_id}")
+
 
             # Remove from data
             self._vendors_data = [
@@ -353,8 +339,7 @@ class VendorManagementDialog(QDialog):
                 if v.get('Id') != vendor_id
             ]
 
-            print(f"DEBUG: After removal - Total vendors: {len(self._vendors_data)}")
-            print(f"DEBUG: Remaining vendor names: {[v.get('Name') for v in self._vendors_data]}")
+
 
             # Remove from list widget
             row = self.vendor_list.row(current_item)
@@ -367,9 +352,9 @@ class VendorManagementDialog(QDialog):
 
             # Check if emission happens
             if not self._updating:
-                print(f"DEBUG: About to emit vendorsDataChanged with {len(self._vendors_data)} vendors")
+
                 self._emit_vendors_changed()
-                print(f"DEBUG: Signal emitted")
+
     def _populate_form(self, vendor_data: Dict[str, str]):
         """Fill form with vendor data."""
         self._updating = True

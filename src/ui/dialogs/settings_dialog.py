@@ -319,6 +319,7 @@ class SushiConfigDialog(QDialog):
     def _get_defaults(self) -> Dict[str, Any]:
         """Get default configuration values from default_config.py file."""
         try:
+
             # Imports the ConfigRepository that already handles config file parsing
             from core.repositories import ConfigRepository
 

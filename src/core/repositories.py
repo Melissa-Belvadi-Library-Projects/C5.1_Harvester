@@ -60,8 +60,7 @@ class ConfigRepository:
         return config
 
     def save(self, config: Dict[str, Any]) -> bool:
-        print(f"DEBUG ConfigRepo.save(): Saving to {self.config_file}")
-        print(f"DEBUG ConfigRepo.save(): providers_file = {config.get('providers_file')}")
+
         """Save configuration to file."""
         try:
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
@@ -129,7 +128,7 @@ class VendorRepository:
             Path.cwd().parent
         ]
 
-        # 3. Dynamically find all subdirectories within the main working areas
+        #  Dynamically find all subdirectories within the main working areas
         for base_dir in directories_to_check:
             # The glob '**/' finds all subdirectories (recursively) from the base_dir.
             # '*' ensures we only get *direct* subfolders if we only want one level deep.
@@ -146,23 +145,17 @@ class VendorRepository:
         for path in search_paths:
             if path.exists():
                 self._file_path = path
-                print(f"DEBUG: Found providers file at: {path}")
                 return path
 
         # Default location if not found
         self._file_path = Path.cwd() / self.providers_file
-        print(f"DEBUG: File not found, using default: {self._file_path}")
         return self._file_path
 
     def load(self) -> List[Dict[str, str]]:
         """Load vendors from TSV file."""
 
-        print(f"DEBUG: VendorRepository.load() called with providers_file: {self.providers_file}")
-
         vendors = []
         file_path = self._find_file()
-
-        print(f"DEBUG: Attempting to load from: {file_path}")
 
         if file_path and file_path.exists():
             try:
@@ -171,7 +164,6 @@ class VendorRepository:
                     for row in reader:
                         if row.get('Name', '').strip():
                             vendors.append(dict(row))
-                print(f"DEBUG: Successfully loaded {len(vendors)} vendors from {file_path}")
             except Exception as e:
                 print(f"Error loading vendors: {e}")
         else:

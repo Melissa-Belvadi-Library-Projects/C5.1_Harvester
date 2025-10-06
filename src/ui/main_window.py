@@ -260,16 +260,11 @@ class SushiHarvesterGUI(QMainWindow):
     def _on_config_changed(self, config: dict):
         """Handle configuration changes."""
 
-        import traceback
-        print("DEBUG: _on_config_changed called from:")
-        traceback.print_stack()
 
 
         # Update app state
         self.app_state.update_config(config)
-        print(f"DEBUG: Config updated - providers_file is now: {config.get('providers_file')}")
-        print(f"DEBUG: Config updated - tsv_dir is now: {self.app_state.config.get('tsv_dir')}")
-        print(f"DEBUG: Config updated - jsv_dir is now: {self.app_state.config.get('json_dir')}")
+
 
         # Save to file
         self.config_repo.save(config)
@@ -287,7 +282,6 @@ class SushiHarvesterGUI(QMainWindow):
 
 
             vendor_names = [v['Name'] for v in vendors_data if v.get('Name', '').strip()]
-            print(f"DEBUG: Vendor names to display: {vendor_names}")
             if hasattr(self.vendor_frame, 'update_items'):
                 self.vendor_frame.update_items(vendor_names)
 
@@ -318,7 +312,6 @@ class SushiHarvesterGUI(QMainWindow):
         # Update UI
         vendor_names = [v['Name'] for v in vendors_data
                         if v.get('Name', '').strip()]
-        print(f"DEBUG: Extracted vendor names: {vendor_names}")
 
         # Check if update_items method exists
         if hasattr(self.vendor_frame, 'update_items'):
@@ -389,7 +382,7 @@ class SushiHarvesterGUI(QMainWindow):
             reports=self.app_state.selected_reports,
             config=self.app_state.config
         )
-        print(f"DEBUG: Starting harvest with tsv_dir: {config.config.get('tsv_dir')}")
+
         # Show progress dialog with scrim - it handles everything
         progress_dialog = ProgressDialog(config=config, parent=self)
         self.show_modal_with_scrim(progress_dialog)
