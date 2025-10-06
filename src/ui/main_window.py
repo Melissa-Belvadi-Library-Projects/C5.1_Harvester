@@ -254,7 +254,7 @@ class SushiHarvesterGUI(QMainWindow):
         self.app_state.dates['start'] = start
         self.app_state.dates['end'] = end
 
-        # Emit global signal
+        # Emit  signal
         self.signals.dateRangeChanged.emit(start, end)
 
     def _on_config_changed(self, config: dict):
