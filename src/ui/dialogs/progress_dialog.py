@@ -10,7 +10,6 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QThread, pyqtSignal, Qt
 from PyQt6.QtGui import QFont
-
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -48,12 +47,12 @@ class HarvesterThread(QThread):
     def run(self):
         """Execute harvester in background thread."""
         try:
-            self.log_signal.emit("-" * 60)
+           # self.log_signal.emit("-" * 60)
             self.log_signal.emit("COUNTER 5.1 Harvester Started")
             self.log_signal.emit(f"Date Range: {self.begin_date} to {self.end_date}")
-            self.log_signal.emit(f"Vendors: {', '.join(self.vendors) if self.vendors else 'All'}")
+            self.log_signal.emit(f"Providers: {', '.join(self.vendors) if self.vendors else 'All'}")
             self.log_signal.emit(f"Reports: {', '.join(self.reports)}")
-            self.log_signal.emit("-" * 60)
+            self.log_signal.emit("-" * 90)
             self.log_signal.emit("")
 
             # Call the backend directly
@@ -130,16 +129,11 @@ class ProgressDialog(QDialog):
         #title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         #layout.addWidget(title_label)
 
-
-
-
         # Log text area
         log_label = QLabel("Progress Log:")
-        log_label.setFont(QFont("Arial", 9, QFont.Weight.Bold))
         layout.addWidget(log_label)
 
         self.log_text = QTextEdit()
-        self.log_text.setFont(QFont("Courier", 9))
         self.log_text.setReadOnly(True)
         self.log_text.setStyleSheet("""
             QTextEdit {
@@ -165,6 +159,8 @@ class ProgressDialog(QDialog):
         self.stop_button.setFixedWidth(100)
         self.stop_button.clicked.connect(self._stop_harvester)
         button_layout.addWidget(self.stop_button)
+        button_layout.addSpacing(5)
+
 
         # Close button
         self.close_button = QPushButton("Close")
@@ -196,6 +192,7 @@ class ProgressDialog(QDialog):
     def _log_message(self, message: str):
         """Add message to log display."""
         self.log_text.append(message)
+
         # Auto-scroll to bottom
         scrollbar = self.log_text.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
@@ -224,43 +221,45 @@ class ProgressDialog(QDialog):
         self.close_button.setEnabled(True)
         self.save_log_button.setEnabled(True)
 
-        if results.get('cancelled'):
-            # User cancelled
-            self._log_message("\n" + "=" * 60)
-            self._log_message("HARVESTER CANCELLED")
-            self._log_message("=" * 60)
-
-            QMessageBox.information(
-                self,
-                "Cancelled",
-                "Harvester was cancelled by user."
-            )
-
-        elif results.get('errors'):
-            # Had errors
-            self._log_message("\n" + "=" * 60)
-            self._log_message("HARVESTER COMPLETED WITH ERRORS")
-            self._log_message("=" * 60)
-            self._log_message(f"Errors encountered: {len(results['errors'])}")
-            for err in results['errors'][:10]:
-                self._log_message(f"  - {err}")
-            self._log_message("=" * 60)
-
-            QMessageBox.warning(
-                self,
-                "Completed with Errors",
-                f"Harvester completed but encountered {len(results['errors'])} error(s).\n\n"
-                f"Check the log for details."
-            )
-
-        else:
-            # Success - no errors
-            QMessageBox.information(
-                self,
-                "Success",
-                "Harvester completed\n\n"
-                f"Check infolog for details."
-            )
+        # if results.get('cancelled'):
+        #
+        #     # User cancelled
+        #     self._log_message("\n" + "=" * 60)
+        #     self._log_message("HARVESTER CANCELLED")
+        #     self._log_message("=" * 60)
+        #
+        #     QMessageBox.information(
+        #         self,
+        #         "Cancelled",
+        #         "Harvester was cancelled by user."
+        #     )
+        #
+        # elif results.get('errors'):
+        #     # Had errors
+        #     self._log_message("\n" + "=" * 60)
+        #     self._log_message("HARVESTER COMPLETED WITH ERRORS")
+        #     self._log_message("=" * 60)
+        #     self._log_message(f"Errors encountered: {len(results['errors'])}")
+        #     for err in results['errors'][:10]:
+        #         self._log_message(f"  - {err}")
+        #     self._log_message("=" * 60)
+        #
+        #     QMessageBox.warning(
+        #         self,
+        #         "Completed with Errors",
+        #         f"Harvester completed but encountered {len(results['errors'])} error(s).\n\n"
+        #         f"Check the log for details."
+        #     )
+        #
+        # else:
+        #
+        #     # Success - no errors
+        #     QMessageBox.information(
+        #         self,
+        #         "Success",
+        #         "Harvester completed\n\n"
+        #         f"Check infolog for details."
+        #     )
 
     def _save_log(self):
         """Save log to file."""
@@ -280,13 +279,12 @@ class ProgressDialog(QDialog):
                     f.write(f"COUNTER 5.1 Harvester Log\n")
                     f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                     f.write(f"Date Range: {self.config.start_date} to {self.config.end_date}\n")
-                    f.write(f"Vendors: {', '.join(self.config.vendors) if self.config.vendors else 'All'}\n")
+                    f.write(f"Providers: {', '.join(self.config.vendors) if self.config.vendors else 'All'}\n")
                     f.write(f"Reports: {', '.join(self.config.reports)}\n")
                     #f.write("=" * 60 + "\n\n")
                     f.write(log_content)
 
-                self.status_label.setText(f"Log saved to: {Path(filename).name}")
-                QMessageBox.information(self, "Success", "Log saved")
+                QMessageBox.information(self, "Success", " Progess Log saved")
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save log:\n{e}")

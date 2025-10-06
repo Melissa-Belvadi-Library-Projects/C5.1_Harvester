@@ -288,11 +288,12 @@ class SushiConfigDialog(QDialog):
 
         # Emit signal instead of saving directly
         self.configChanged.emit(config)
+        self.set_state(config)
 
         # Update original state
-        self._original_state = config.copy()
-        self.save_btn.setEnabled(False)
-        # note the changeshappen with the method on_field_changed
+        #self._original_state = config.copy()
+       # self.save_btn.setEnabled(False)
+
 
     def _reset_to_defaults(self):
         """Reset all fields to default values."""
@@ -393,7 +394,7 @@ class SushiConfigDialog(QDialog):
             #msg_box.setIcon(QMessageBox.Icon.Question)
 
             # Add custom buttons with clear text
-            save_close_btn = msg_box.addButton("Save and Close", QMessageBox.ButtonRole.AcceptRole)
+            save_close_btn = msg_box.addButton("Save And Close", QMessageBox.ButtonRole.AcceptRole)
             close_without_save_btn = msg_box.addButton("Close Without Saving", QMessageBox.ButtonRole.DestructiveRole)
 
             msg_box.setDefaultButton(save_close_btn)

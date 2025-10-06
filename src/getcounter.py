@@ -1,14 +1,12 @@
-"""Main harvester program - can be called from CLI or GUI"""
 import sqlite3
 import traceback
 from datetime import datetime
 from pathlib import Path
-from logger import log_error
+from logger import log_error, set_progress_callback
 from create_tables import create_data_table
 from load_providers import load_providers
 from fetch_json import fetch_json
 from process_item_details import process_item_details
-from current_config import sqlite_filename, providers_file, error_log_file
 
 
 def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
@@ -21,12 +19,36 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
         end_date: End date in YYYY-MM format
         selected_vendors: List of vendor names to process (empty list = all vendors)
         selected_reports: List of report types like ['DR', 'TR', 'PR', 'IR']
-        progress_callback: Optional function to call with progress messages
-        is_cancelled_callback: Optional function that returns True if user cancelled
+        progress_callback: function to call with progress messages
+        is_cancelled_callback:  function that returns True if user cancelled
 
     Returns:
         Dictionary with results
     """
+
+
+    # Import config INSIDE the function to get fresh values each time
+    import importlib
+    import current_config
+    importlib.reload(current_config)  # Force Python to re-read the file
+
+    from current_config import (
+        sqlite_filename,
+        providers_file,
+        error_log_file,
+        json_dir,
+        tsv_dir,
+        data_table,
+        save_empty_report,
+        always_include_header_metric_types
+    )
+
+    print(f"DEBUG getcounter: Using providers_file = {providers_file}")
+    print(f"DEBUG getcounter: Looking for vendors: {selected_vendors}")
+
+    # Set the callback for logger to use
+    set_progress_callback(progress_callback)
+
 
     def log(msg):
         """Send message to callback or print."""
@@ -41,7 +63,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
             return is_cancelled_callback()
         return False
 
-    # Initialize results to
+    # Initialize results
     results = {
         'errors': []
     }
@@ -60,7 +82,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
             'vendors': selected_vendors
         }
 
-        # Create callbacks for load_providers
+        #  callbacks for load_providers, these are the functions
         def error_callback(msg):
             log(f"ERROR: {msg}")
             results['errors'].append(msg)
@@ -129,7 +151,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
                     results['errors'].append(error_msg)
                 #around here ..insert qinfobox
                 # if stop signals , write to progress report ,..completed provider ... take out warning ..only write for the last provder and report  collected
-        log(f"Retrieving report: {provider_name}: {report_id.upper()}")
+        #log(f"Retrieving report: {provider_name}: {report_id.upper()}")
         log(f"Completed all providers, all reports.")
         log(f"Check {error_log_file} for problems/reports that failed/exceptions")
 

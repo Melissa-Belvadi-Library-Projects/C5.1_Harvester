@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.state import AppState, AppSignals
 from core.repositories import ConfigRepository, VendorRepository
 
+from ui.dialogs.progress_dialog import ProgressDialog
 
 # Import UI components
 from ui.components.vendor_frame import VendorFrame
@@ -236,7 +237,7 @@ class SushiHarvesterGUI(QMainWindow):
             # Fallback: recreate the frame if update method doesn't exist
             old_frame = self.vendor_frame
             self.vendor_frame = VendorFrame("Select Providers", vendor_names)
-            # Replace in layout if needed
+
 
         # Apply selected items if any
         if self.app_state.selected_vendors:
@@ -259,9 +260,16 @@ class SushiHarvesterGUI(QMainWindow):
     def _on_config_changed(self, config: dict):
         """Handle configuration changes."""
 
+        import traceback
+        print("DEBUG: _on_config_changed called from:")
+        traceback.print_stack()
+
 
         # Update app state
         self.app_state.update_config(config)
+        print(f"DEBUG: Config updated - providers_file is now: {config.get('providers_file')}")
+        print(f"DEBUG: Config updated - tsv_dir is now: {self.app_state.config.get('tsv_dir')}")
+        print(f"DEBUG: Config updated - jsv_dir is now: {self.app_state.config.get('json_dir')}")
 
         # Save to file
         self.config_repo.save(config)
@@ -274,10 +282,14 @@ class SushiHarvesterGUI(QMainWindow):
             # Reload vendors
 
             vendors_data = self.vendor_repo.load()
-
-
             self.app_state.vendors_data = vendors_data
-            self._on_vendors_data_changed(vendors_data)
+            #self._on_vendors_data_changed(vendors_data)
+
+
+            vendor_names = [v['Name'] for v in vendors_data if v.get('Name', '').strip()]
+            print(f"DEBUG: Vendor names to display: {vendor_names}")
+            if hasattr(self.vendor_frame, 'update_items'):
+                self.vendor_frame.update_items(vendor_names)
 
         # Update UI components
         self.date_selector.set_state({
@@ -292,8 +304,6 @@ class SushiHarvesterGUI(QMainWindow):
 
     def _on_vendors_data_changed(self, vendors_data: list):
         """Handle vendor data changes."""
-
-
         # Update state
         self.app_state.vendors_data = vendors_data
 
@@ -379,10 +389,7 @@ class SushiHarvesterGUI(QMainWindow):
             reports=self.app_state.selected_reports,
             config=self.app_state.config
         )
-
-        # Import the new progress dialog
-        from ui.dialogs.progress_dialog import ProgressDialog
-
+        print(f"DEBUG: Starting harvest with tsv_dir: {config.config.get('tsv_dir')}")
         # Show progress dialog with scrim - it handles everything
         progress_dialog = ProgressDialog(config=config, parent=self)
         self.show_modal_with_scrim(progress_dialog)
@@ -398,7 +405,7 @@ class SushiHarvesterGUI(QMainWindow):
         )
 
         # Connect dialog signals
-        dialog.vendorsDataChanged.connect(self._on_vendors_data_changed)
+        #dialog.vendorsDataChanged.connect(self._on_vendors_data_changed)
 
         result = self.show_modal_with_scrim(dialog)
 
@@ -452,7 +459,6 @@ class SushiHarvesterGUI(QMainWindow):
     def _handle_exit(self):
         """Handle application exit."""
         self.close()
-
 
 
 if __name__ == "__main__":

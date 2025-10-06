@@ -60,6 +60,8 @@ class ConfigRepository:
         return config
 
     def save(self, config: Dict[str, Any]) -> bool:
+        print(f"DEBUG ConfigRepo.save(): Saving to {self.config_file}")
+        print(f"DEBUG ConfigRepo.save(): providers_file = {config.get('providers_file')}")
         """Save configuration to file."""
         try:
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
@@ -154,6 +156,7 @@ class VendorRepository:
 
     def load(self) -> List[Dict[str, str]]:
         """Load vendors from TSV file."""
+
         print(f"DEBUG: VendorRepository.load() called with providers_file: {self.providers_file}")
 
         vendors = []
@@ -177,8 +180,10 @@ class VendorRepository:
         return vendors
 
 
-    def save(self, vendors: List[Dict[str, str]]) -> bool:
+    def save(self, vendors: List[Dict[str, str]]) :
+
         """Save vendors to TSV file."""
+
         file_path = self._find_file()
 
         if not file_path:
