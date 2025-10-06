@@ -1,13 +1,14 @@
-# Steps to get this running
+# Installation and pre-run setup
 
 This document assumes that we have not yet provided an executable package for your operating system and need to install the harvester manually.
 
 ## Step 1 - create a folder/directory on your hard drive that you want everything to go into
-Decide where on your hard drive you want all of this, the code and reports, to be stored. Everything will stay in that one folder/directory tree. For instance, you might want to make a folder within your "My Documents" called "COUNTER_Harvester", so create that. You can call it whatever you like. All of the program's files and all of the files that it creates with your COUNTER data will be within that folder.
+Decide where on your hard drive you want all of this, the code and reports, to be stored. Everything will stay in that one folder/directory tree. For instance, you might want to make a folder within your "Documents" called "COUNTER_Harvester", so create that. You can call it whatever you like. All of the program's files and all of the files that it creates with your COUNTER data will be within that folder.
 
 ## Step 2 - Download the harvester package
 * On the repository starting page, find the green Code menu pulldown - open it then click on Download zip and save the file to the folder you created for it.
 * Unzip the downloaded zip file directly into that folder. How to do that depends on how your operating system (Windows, Mac) is configured, but you can probably "unzip" it using your usual file browser, then right-click on the zip filename and select "extract" or "unzip" from the context menu that pops up.
+* You should find that you now have a folder called **C5.1_Harvester**, and within that, a folder called **src** which is where all of the code and settings files are.
   
 ## Step 3 - Make sure you have Python3 and the required packages installed
 
@@ -36,7 +37,9 @@ If you are python-savvy, you can also just read the requirements.txt (plain text
 
 Advanced tip: if you use python for other things, make a python "**venv**" virtual environment for the harvester and run pip when you are inside that.
 
-Basic steps for building and using a "venv" that using a command shell/window, starting in the folder where you unzipped the harvester:
+Basic steps for building and using a "venv" that using a command shell/window, starting in the folder where you unzipped the harvester. In our Windows example where you unzipped the harvester into a folder called **Documents\COUNTER_Harvester** and it created a folder called C5.1_Harvester, in a shell (terminal) make sure you are in the **C5.1_Harvester** folder, it should have a folder in it called "**src**" which you can see using the "dir" command.
+
+Then do these steps:
 
 1. Do this just once:
 - python -m venv venv        - this builds the virtual environment (may need to be python3 as in steps above)
@@ -51,13 +54,19 @@ Basic steps for building and using a "venv" that using a command shell/window, s
 ## Step 4 - set up the providers.tsv file with your site's COUNTER 5.1 information and (optional) change the current_config.py values to what you want
 
 Run the harvester, and use the Settings button to change the default settings.  You can leave all of these alone if you like.
-All of these options are explained in the configuration options document here.
+All of these options are explained in the [configuration options](config-options.md) document here.
 
 If you are going to change any of the options that refer to file, folder, or table names, make those changes before you start your first data harvest.
 
 Then use the Manage Providers to set up the providers.tsv file with the information about your providers and your credentials (eg customer_id, requestor_id, api_key).
 You can get the base_url and some information about how to get the rest from the [COUNTER Registry](https://registry.countermetrics.org/). Optionally, you can edit this file directly using whatever program you like to use for tab-separated-value (tsv) files. But be sure you save it in tsv format, not Excel or odt, or any other format.
 
-You will find a template file you can download and use as your starting file called template_providers.tsv right here.
+You will find a template file you can download and use as your starting file called[ template_providers.tsv](template_providers.md) right here.
 
-For more information about what the harvester creates, see the What is saved where document.
+For more information about what the harvester creates, see the [What is saved where](files_and_folders.md) document.
+
+See also the [Provider specific quirks - retries and delays](provider_specific_notes.md) document
+
+
+
+
