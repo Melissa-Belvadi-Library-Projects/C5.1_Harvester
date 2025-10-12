@@ -132,13 +132,13 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
                 break
 
             report_urls = provider_info.get('Report_URLS', {})
+            log(f"Retrieving reports: {provider_name}") # do this line for pause..instead of retrieve ..use completed
 
             for report_id, report_url in report_urls.items():
                 if is_cancelled():
                     break
 
                 log_error(f"INFO: Retrieving report: {provider_name}: {report_id.upper()}: {report_url}")
-                log(f"Retrieving report: {provider_name}: {report_id.upper()}") # do this line for pause..instead of retrieve ..use completed
 
                 try:
                     process_item_details(provider_info, report_id, report_url)
@@ -148,9 +148,9 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
                     log_error(f"ERROR: {error_msg}\n{traceback.format_exc()}")
                     results['errors'].append(error_msg)
                 #around here ..insert infobox
-                # if stop signals , write to progress report ,..completed provider ... take out warning ..only write for the last provder and report  collected
+                # if stop signals , write to progress report ,..completed provider ... take out warning ..only write for the last provider and report  collected
         #log(f"Retrieving report: {provider_name}: {report_id.upper()}")
-        log(f"Completed all providers, all reports.")
+        log(f"Finished")
         log(f"Check {error_log_file} for problems/reports that failed/exceptions")
 
     except Exception as e:
