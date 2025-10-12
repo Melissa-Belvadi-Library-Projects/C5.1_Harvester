@@ -7,14 +7,12 @@ from data_columns import data_columns, data_columns_sql
 
 def create_data_table(cursor):
     #Create the data table in the SQLite database
-    # Add Row_Hash to your column definitions
+    # data_columns_sql sets the column types for all columns, including Row_Hash as primary key
     local_data_columns = data_columns_sql.copy()
     column_definitions = ', '.join(local_data_columns)  # Join local_data_columns to define columns
     sql_statement = f'''
     CREATE TABLE IF NOT EXISTS {data_table} (
-        Data_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-        {column_definitions},
-        UNIQUE (Row_Hash)
+        {column_definitions}
     );
     '''
     # Execute the SQL to create the table
@@ -24,9 +22,11 @@ def create_data_table(cursor):
     Index_Provider_Name = f'CREATE INDEX IF NOT EXISTS idx_provider_name ON {data_table} (Provider_Name)'
     Index_Metric_Type = f'CREATE INDEX IF NOT EXISTS idx_Metric_Type ON {data_table} (Metric_Type)'
     Index_Title = f'CREATE INDEX IF NOT EXISTS idx_Title ON {data_table} (Title)'
+    Index_Dates = f'CREATE INDEX IF NOT EXISTS idx_yearmonth ON {data_table} (Data_Year, Data_Month)'
 
     cursor.execute(Index_Report_Type)
     cursor.execute(Index_Title)
     cursor.execute(Index_Provider_Name)
     cursor.execute(Index_Metric_Type)
+    cursor.execute(Index_Dates)
 

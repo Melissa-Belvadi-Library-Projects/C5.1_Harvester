@@ -121,7 +121,7 @@ def save_json(report_json, report_id, provider_info, json_folder=json_dir, save_
         json_filename = json_filename.removesuffix(".json") + "_empty.json"
     if exceptions:
         if len(exceptions) == 1 and exceptions[0].get("Code") == 3030:  # Don't bother user to print if just some vendors don't have data available for those dates
-            log_error(f'Warning:       Exception is for date range only:\n        {exceptions}')
+            log_error(f'Warning:  Date range exception: {exceptions}')
         else:
             print(f'ERROR: Exception for {json_filename}; see error log for details')
             log_error(f'ERROR: Exception given for {json_filename}; {exceptions}\nThe report may still have been saved and added to the database, but may not have the data you wanted')
@@ -190,7 +190,13 @@ def parse_tsv_file(file_path, provider_name, report_type):
                     data_dict['Data_Month'] = month_map[month_str]
                     data_dict['Data_Year'] = int(year_str)
                     data_dict['Metric_Usage'] = row[col_idx]
-                    # Remove the original date column from the dict
+                    value = row[col_idx]
+                    # If metric usage is 0, don't save it in the sqlite database
+                    if str(value).strip() in ('', '0', 'None'):
+                        # print(f'Empty usage in row: {row}:\n col: {col_idx} : {year_str} : {month_str}\n')
+                        continue
+                    else:
+                        data_dict['Metric_Usage'] = value                    # Remove the original date column from the dict
                     if date_header in data_dict:
                         del data_dict[date_header]
                     result_rows.append(data_dict)
