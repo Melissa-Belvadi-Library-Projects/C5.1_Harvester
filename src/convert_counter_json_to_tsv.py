@@ -417,10 +417,10 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
                 ### A-P is a list, an attribute is a dict, and a "performance" within an attribute is a dict
                 for attr in attribute:  ### usully just one (dict) per item but in theory could be more than one
                     if 'Performance' not in attr: # in theory this should never happen but if it does, we skip this entire attr
-                        log_error(f'ERROR: There is no performance in this attribute block - this should never happen but we have to skip this attribute')
+                        log_error(f'ERROR_INFO: There is no performance in this attribute block - this should never happen but we have to skip this attribute: {attr}\n{row}\n')
                         continue
                     if not isinstance(attr, dict):
-                        log_error(f'ERROR: ATTR is {type(attr)}. That should never happen - skipping this atttribute block\n')
+                        log_error(f'ERROR_INFO: ATTR is {type(attr)}. That should never happen - skipping this atttribute block\n')
                         continue
                     for field in fields_to_add: ## For each possible field that this particular report could have column for
                         if field not in attr: ### now is this possible field also in our actual data

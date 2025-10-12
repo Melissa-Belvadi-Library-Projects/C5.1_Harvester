@@ -36,7 +36,7 @@ data_columns = [
         "Data_Month",
         "Metric_Usage",
         "Book_Segment_Count",
-         "Parent_Article_Version",
+        "Parent_Article_Version",
         "Parent_Authors",
         "Parent_Data_Type",
         "Parent_DOI",

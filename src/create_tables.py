@@ -2,15 +2,13 @@
 # create the sqlite table using the list from data_columns
 from logger import log_error
 from current_config import sqlite_filename, data_table
-from data_columns import data_columns
+from data_columns import data_columns, data_columns_sql
 
 
 def create_data_table(cursor):
     #Create the data table in the SQLite database
     # Add Row_Hash to your column definitions
-    local_data_columns = data_columns.copy()
-    if "Row_Hash" not in local_data_columns:
-        local_data_columns.append("Row_Hash")
+    local_data_columns = data_columns_sql.copy()
     column_definitions = ', '.join(local_data_columns)  # Join local_data_columns to define columns
     sql_statement = f'''
     CREATE TABLE IF NOT EXISTS {data_table} (

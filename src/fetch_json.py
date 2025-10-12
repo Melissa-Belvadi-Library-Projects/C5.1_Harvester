@@ -460,11 +460,17 @@ def fetch_json(providers, begin_date, end_date, report_type_list):
                 data_dict[provider_name] = provider_info  # Add provider_info dict  directly to the data_dict
             else:
                 log_error(
-                    f'ERROR: The response to the url {report_json_url} is not the expected supported reports list\n')
+                    f'ERROR_INFO: The response to the url {report_json_url} is not the expected supported reports list\n')
                 if isinstance(report_json, dict):
-                    if report_json.get("Code", None):
-                        log_error(
-                            f'ERROR: A COUNTER Exception code was provided: {report_json.get("Code")}:\nMessage: {report_json.get("Message", "(None provided)")}\n')
+                    if ExceptionCode := report_json.get("Code", None):
+                        ErrorText = f'ERROR: A COUNTER Exception code was provided: {ExceptionCode}'
+                        if ExceptionMessage := report_json.get("Message", None):
+                            ErrorText += f'; Message: {ExceptionMessage}'
+                        if ExceptionData := report_json.get("Data", None):
+                            ErrorText += f'; Data: {ExceptionData}'
+                        if ExceptionHelp_URL := report_json.get("Help_URL", None):
+                            ErrorText += f'; Help_URL: {ExceptionHelp_URL}'
+                        log_error(f'{ErrorText}\n')
                 continue
         # these are all raised from get_json_data
         except requests.exceptions.HTTPError as http_err:
