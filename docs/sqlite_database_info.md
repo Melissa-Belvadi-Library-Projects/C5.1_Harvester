@@ -1,4 +1,4 @@
-# SQLITE Database
+# SQLite Database
 
 This document explains the structure of the sqlite database and how to use it. Example sql scripts for it are in the example-scripts documentation folder in this repository.
 
