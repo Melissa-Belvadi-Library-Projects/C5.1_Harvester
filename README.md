@@ -12,3 +12,5 @@ Melissa is the maintainer of this code. If anyone would be interested in getting
 For more information about COUNTER Metrics and the reports, see the [Education section of COUNTER's website](https://www.countermetrics.org/education/)
 
 - Melissa Belvadi, librarian at the University of Prince Edward Island
+- Daniel Odoom, dkodoom2002@gmail.com
+
