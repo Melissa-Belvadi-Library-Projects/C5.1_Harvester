@@ -3,7 +3,7 @@
 To make the best use of this data, make sure you learn what the various options: metric types, access types and methods, data types, etc. actually mean
 COUNTER Metrics has an excellent set of tutorials for librarians at [COUNTER Metrics Education](https://www.countermetrics.org/education/)
 
-## Book Title investigations without full text (requests)
+## Book Title investigations without full text requests
 
 Find all of the books that had title investigations but no title requests - this tends to mean books your patrons were interested in, but you didn't have the full text, or at least not on that platform:
 This example shows how to sum up metric_usage, which is something you'll want to do often. Important to that working is that list of "group by" fields from your select list. The order in the "group by" doesn't matter.

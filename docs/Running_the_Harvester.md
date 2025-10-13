@@ -35,7 +35,7 @@ The harvester checks the date range available from each provider compared to you
 - **Report Type**s: You can select any or all of the report types to include in this run using the checkboxes provided.
 - - The harvester will check your list of requested report types against what that provider's API server tells it are the supported report types and only request the supported ones.
 
-When you press the Start button, it just runs until it is done. Depending on how many providers have required delays and retries, it could take a few minutes or even hours, as it processes each report request fully one at a time. 
+When you press the Start button, it just runs until it is done. Depending on how many providers have required delays and retries, it could take a few minutes or even hours, as it processes each report request fully one at a time, especially if some providers require delays between requests and/or retries.
 
 ### Progress Log
 
