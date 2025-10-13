@@ -5,6 +5,7 @@ Here are some of them:
 - AVMA: 2024-07  (American Veterinary Medical Association)
 - EBSCO: 2022-01
 - Edward_Elgar: 2024-07
+- Gale: 2022-01
 - JSTOR: 2023-01
 - Microbiology_Society: 2023-01
 - Sage_books: 2023-01
