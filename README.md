@@ -4,6 +4,7 @@ Python code to harvest COUNTER Metrics usage data reports using the SUSHI API, g
 [Documentation](docs/README.md) - written for librarians
 
 Melissa Belvadi wrote the backend and the 1.0 version that only offered a command-line interface
+
 Daniel Odoom wrote the GUI using PyQt6 and integrated the backend code to make version 2.0, released in October, 2025.
 
 Melissa is the maintainer of this code. If anyone would be interested in getting involved, contact me at mbelvadi@upei.ca
