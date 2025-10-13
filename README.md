@@ -1,16 +1,12 @@
 # C5.1_Harvester
 Python code to harvest COUNTER Metrics usage data reports using the SUSHI API, generate the TSV files and store the data in an sqlite database.
 
-This does not have a graphical user interface, just a command line one, but it is very simple to use.
-It just needs you to maintain a tsv file with the info about your providers' SUSHI information.
-When it is run, you will be asked for starting and ending dates, and whether you want just one report/view or all of them, and then it does the rest.
-There is a sushiconfig.py file that gives you a few basic configuration choices.
+[Documentation](docs/README.md) - written for librarians
 
-As of May 12, 2025, it supports all PR, DR, IR, and TR reports and views.
+Melissa Belvadi wrote the backend and the 1.0 version that only offered a command-line interface
+Daniel Odoom wrote the GUI using PyQt6 and integrated the backend code to make version 2.0, released in October, 2025.
 
-I am the sole creator and maintainer of this code. If anyone would be interested in getting involved, contact me at mbelvadi@upei.ca
-
-See the docs for more information.
+Melissa is the maintainer of this code. If anyone would be interested in getting involved, contact me at mbelvadi@upei.ca
 
 For more information about COUNTER Metrics and the reports, see the [Education section of COUNTER's website](https://www.countermetrics.org/education/)
 
