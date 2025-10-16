@@ -10,4 +10,4 @@ If a provider requires both of those, a "Y" in "Retry" will cause the harvester 
 
 Most providers include these limitations in the [Registry](https://registry.countermetrics.org/) entry.  However, some do not but just put the information into report headers as "exceptions". You may have to notice the warnings or error messages (which report the notes in those "exception" fields) when you first run harvests on those providers, and then update your providers.tsv file with that information.
 
-
+All providers that use Scholarly IQ as their data host require a 1 second delay between all API requests. So for all of these, be sure to put at least "1" in the Delay column for your providers in [this list of SIQ providers](https://registry.countermetrics.org/usage-data-host/436ccfaa-f0dd-4b50-a31f-63005c2feae7). To be safe you might want to use 2 or 3.
