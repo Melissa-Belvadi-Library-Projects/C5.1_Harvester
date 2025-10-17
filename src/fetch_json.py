@@ -488,6 +488,7 @@ def fetch_json(providers, begin_date, end_date, report_type_list):
             log_error(
                 f"ERROR: Unexpected error occurred for {provider_name}: {type(e).__name__}: {str(e)}\n{trace_details}")
     if len(data_dict) > 0:
+        # log_error(f'DEBUG in fj looking for report header: {data_dict}\n')
         return data_dict
     else:
         return None

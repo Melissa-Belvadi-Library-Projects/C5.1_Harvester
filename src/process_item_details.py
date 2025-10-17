@@ -126,8 +126,16 @@ def save_json(report_json, report_id, provider_info, json_folder=json_dir, save_
             print(f'ERROR: Exception for {json_filename}; see error log for details')
             log_error(f'ERROR: Exception given for {json_filename}; {exceptions}\nThe report may still have been saved and added to the database, but may not have the data you wanted')
     full_file_path = os.path.join(subfolder, json_filename)
+    # Need to write everything except our custom Provider_Name that we need to use in the sqlite database
+    # Make a shallow copy of the dictionary
+    temp_dict_for_writing = report_json.copy()
+    key_to_skip = 'Provider_Name'
+    # Remove the sensitive key from the copy
+    if key_to_skip in temp_dict_for_writing:
+        del temp_dict_for_writing[key_to_skip]
+    # Dump the temporary, modified dictionary to the file
     with open(full_file_path, "w", encoding="utf-8") as json_file:
-        json.dump(report_json, json_file, indent=4)
+        json.dump(temp_dict_for_writing, json_file, indent=4)
     return full_file_path
 
 """
@@ -211,12 +219,14 @@ def process_item_details(provider_info,report_type,get_report_url):
     try:
         ################# This uses get_json_data in fetch_json.py to actually get the specific report
         report_data = get_json_data(get_report_url,provider_info)
+        #log_error(f'DEBUG PID: Does the report data contain the Report Header?\n{report_data}\n')
         if (not report_data) or (isinstance(report_data, int)) or (not isinstance(report_data, dict)): # an int response is an error
             log_error(f"ERROR: Processing {provider_name}:{report_type.upper()}: unable to get report {report_type.upper()}\n")
             return -1
     except Exception as e:
         log_error(f"ERROR: Processing {provider_name}:{report_type.upper()}: Error occurred for {get_report_url}: \n{e} type: {type(e).__name__}\n")
         return None
+    #log_error(f'DEBUG PID: did we get the report header? { report_data.get("Report_Header", "No report header")}\n')
     try:
         report_header = report_data.get("Report_Header", {})
         if not report_header:

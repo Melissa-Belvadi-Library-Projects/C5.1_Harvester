@@ -1,8 +1,77 @@
 import csv
 import sys
+import os
 from logger import log_error
 
-def load_providers(file_path, user_selections, error_callback , warning_callback ):
+def sanitize_tsv_file(file_path):
+    """
+    Reads a TSV file, corrects rows with too few or too many columns,
+    and overwrites the original file with the corrected version.
+
+    Args:
+        file_path (str): The full path to the TSV file.
+
+    Returns:
+        bool: True if the file was successfully sanitized or was already correct.
+              False if the file could not be found or was empty.
+    """
+    if not os.path.exists(file_path):
+        log_error(f"Error: File not found at '{file_path}'.")
+        return False
+
+    # --- Read Phase ---
+    try:
+        with open(file_path, 'r', encoding="utf-8", newline='') as file:
+            lines = file.readlines()
+    except Exception as e:
+        log_error(f"Error reading file: {e}")
+        return False
+
+    if not lines:
+        log_error("File is empty. No sanitization needed.")
+        return True # An empty file is technically "clean"
+
+    # --- Analysis and Fixing Phase ---
+    header_line = lines[0]
+    expected_tab_count = header_line.count('\t')
+    expected_column_count = expected_tab_count + 1
+
+    corrected_lines = [header_line]
+    changes_made = False
+
+    for i, line in enumerate(lines[1:], start=2):
+        clean_line = line.rstrip()
+        current_tab_count = clean_line.count('\t')
+        processed_line = ''
+        if current_tab_count < expected_tab_count:
+            tabs_to_add = expected_tab_count - current_tab_count
+            processed_line = clean_line + ('\t' * tabs_to_add) + '\n'
+        elif current_tab_count > expected_tab_count:
+            columns = clean_line.split('\t')
+            truncated_columns = columns[:expected_column_count]
+            processed_line = '\t'.join(truncated_columns) + '\n'
+        else:
+            processed_line = clean_line + '\n'
+        if processed_line != line:
+            changes_made = TRUE
+        corrected_lines.append(processed_line)
+    # --- Overwrite Phase (only if necessary) ---
+    if changes_made:
+        log_error(f"Inconsistencies found in {file_path}. Overwriting file with corrected data...")
+        try:
+            with open(file_path, "w", encoding="utf-8", newline='') as outfile:
+                outfile.writelines(corrected_lines)
+            #log_error("File successfully sanitized.")
+        except Exception as e:
+            log_error(f"Error writing sanitized file: {e}")
+            return False
+    else:
+        pass
+        #print("File structure is already consistent. No changes made.")
+    return True
+
+
+def load_providers(file_path, user_selections, error_callback , warning_callback, general_callback ):
     """
     Loads provider data from a TSV file, validates it, and filters based on user selections.
 
@@ -16,35 +85,13 @@ def load_providers(file_path, user_selections, error_callback , warning_callback
         list: A list of provider dictionaries on success.
         None: On any fatal validation failure.
     """
-#added callback
-    try:
-        with open(file_path, 'r', encoding="utf-8") as file:
-            # 1. General Validation: Sniff the delimiter to ensure it's a TSV.
-            try:
-                dialect = csv.Sniffer().sniff(file.read(2048), delimiters='\t,;')
-                file.seek(0)  # Rewind the file after sniffing
-                if dialect.delimiter != '\t':
-                    error_message = f"File Format Error: Expected a Tab-Separated (TSV) file for providers, but it appears to be delimited by '{dialect.delimiter}'."
-                    log_error(error_message)
-                    error_callback(error_message)  # CHANGED: removed .emit()
-                    return None
-            except csv.Error:
-                error_message = f"File Format Error: Could not determine file structure of {file_path}. Please ensure it is a valid TSV text file and not binary (like an Excel .xlsx file)."
-                log_error(error_message)
-                error_callback(error_message)
-                return None
-
-            reader = csv.reader(file, dialect)
-
-            # 2. Header Validation
-            try:
-                headers = next(reader)
-                num_headers = len(headers)
-            except StopIteration:
-                error_message = "File Format Error: The file is empty."
-                error_callback(error_message)
-                return None
-
+    #added callback
+    general_callback('Loading your provider information...')
+    is_file_ready = sanitize_tsv_file(file_path)
+    if is_file_ready:
+        with open(file_path, 'r', encoding="utf-8", newline='') as file:
+            reader = csv.reader(file, delimiter='\t')
+            headers = next(reader)
             required_headers = ['Name', 'Base_URL', 'Customer_ID', 'Version']
             missing_headers = [h for h in required_headers if h not in headers]
             if missing_headers:
@@ -62,18 +109,6 @@ def load_providers(file_path, user_selections, error_callback , warning_callback
             for row_num, row in enumerate(reader, 2):  # Start from line 2
                 if not ''.join(row).strip():  # Skip empty or all-whitespace rows
                     continue
-
-                # Your original logic to handle rows with missing optional columns at the end
-                if len(row) < num_headers:
-                    row += [''] * (num_headers - len(row))
-                # New validation: Check for rows that are too long
-                elif len(row) > num_headers:
-                    warning_message = f"Formatting Warning on line {row_num}: Expected {num_headers} columns, but found {len(row)}. Ignoring extra data."
-                    warning_callback(warning_message) # removed emit
-                    log_error(warning_message)
-                    row = row[:num_headers]
-
-
                 # --- Filter based on user selections from the GUI ---
                 provider_name = row[header_indices['Name']]
                 if provider_name not in user_selections.get('vendors', []):
@@ -125,20 +160,3 @@ def load_providers(file_path, user_selections, error_callback , warning_callback
                 return None
 
         return providers
-
-    except UnicodeDecodeError:
-        error_message = f"File Encoding Error: {file_path} is not a valid UTF-8 text file. Please ensure it is not  a binary file (like an Excel .xlsx file)."
-        error_callback(error_message)
-        log_error(error_message)
-        return None
-    except FileNotFoundError:
-        error_message = f"File Not Found: {file_path} could not be found at the specified path."
-        error_callback(error_message)
-        log_error(error_message)
-        return None
-    except Exception as e:
-        # A catch-all for any other unexpected errors during file processing
-        error_message = f"An unexpected error occurred while loading {file_path}: {e}"
-        error_callback(error_message)
-        log_error(error_message)
-        return None
