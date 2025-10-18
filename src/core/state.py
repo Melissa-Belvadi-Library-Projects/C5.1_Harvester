@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from PyQt6.QtCore import QObject, pyqtSignal
-import json
+
 
 
 @dataclass

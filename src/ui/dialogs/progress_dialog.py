@@ -20,7 +20,7 @@ import getcounter
 class HarvesterThread(QThread):
     """
     Background thread that calls the harvester backend directly.
-    No integration layer - just calls getcounter.run_harvester().
+    calls getcounter.run_harvester().
     """
 
     # Signals for thread-safe communication
@@ -47,7 +47,6 @@ class HarvesterThread(QThread):
     def run(self):
         """Execute harvester in background thread."""
         try:
-           # self.log_signal.emit("-" * 60)
             self.log_signal.emit("COUNTER 5.1 Harvester Started")
             self.log_signal.emit(f"Date Range: {self.begin_date} to {self.end_date}")
             self.log_signal.emit(f"Providers: {', '.join(self.vendors) if self.vendors else 'All'}")
@@ -62,12 +61,12 @@ class HarvesterThread(QThread):
                 selected_vendors=self.vendors,
                 selected_reports=self.reports,
                 progress_callback=self._handle_progress,
-                is_cancelled_callback=lambda: self._is_cancelled
+                is_cancelled_callback=lambda: self._is_cancelled #pass the cancel function through here
             )
 
             # Emit results
             if self._is_cancelled:
-                self.log_signal.emit("\n Harvest cancelled-still testing")
+                #self.log_signal.emit("\nCOUNTER 5.1 Harvester Cancelled")
                 self.finished_signal.emit(False, {'cancelled': True})
             else:
                 self.finished_signal.emit(results.get('success', False), results)
@@ -81,7 +80,7 @@ class HarvesterThread(QThread):
     def cancel(self):
         """Cancel the running harvest."""
         self._is_cancelled = True
-        self.log_signal.emit("\n Cancellation requested...")
+        self.log_signal.emit("Cancellation requested,finishing saving the last report started before the Stop request...")
 
     def _handle_progress(self, message):
         """Handle progress messages from harvester backend."""
@@ -198,19 +197,10 @@ class ProgressDialog(QDialog):
         scrollbar.setValue(scrollbar.maximum())
 
     def _stop_harvester(self):
-        """Stop the running harvester."""
+        """Stop the running harvester immediately."""
         if self.harvester_thread and self.harvester_thread.isRunning():
-            reply = QMessageBox.question(
-                self,
-                "Confirm Stop",
-                "Are you sure you want to stop the harvester?\n\n"
-                "Any reports in progress will be incomplete.",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-            )
-
-            if reply == QMessageBox.StandardButton.Yes:
-                self.harvester_thread.cancel()
-                self.stop_button.setEnabled(False)
+            self.harvester_thread.cancel()
+            self.stop_button.setEnabled(False)
 
     def _on_finished(self, success: bool, results: dict):
         """Handle harvester completion."""
@@ -290,22 +280,16 @@ class ProgressDialog(QDialog):
             QMessageBox.critical(self, "Error", f"Failed to save log:\n{e}")
 
     def closeEvent(self, event):
-
         """Handle window close event (X button)."""
         if self.harvester_thread and self.harvester_thread.isRunning():
-            reply = QMessageBox.question(
+            # Silently ignore - similar to the  close  button behavior
+            event.ignore()
+            QMessageBox.information(
                 self,
                 "Harvester Running",
-                "The harvester is still running.\n\n"
-                "Stop it and close?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                "Please wait for the harvest to complete, or click Stop first."
             )
 
-            if reply == QMessageBox.StandardButton.Yes:
-                self.harvester_thread.cancel()
-                self.harvester_thread.wait(5000)  # Wait up to 5 seconds
-                event.accept()
-            else:
-                event.ignore()
         else:
+            # Allow close when harvester is done
             event.accept()

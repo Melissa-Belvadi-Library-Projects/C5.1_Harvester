@@ -122,7 +122,7 @@ class SushiConfigDialog(QDialog):
 
         # Default Begin Date
         row += 1
-        fields_layout.addWidget(QLabel("Default Begin Date:"), row, 0,
+        fields_layout.addWidget(QLabel("Default Start Date:"), row, 0,
                                 Qt.AlignmentFlag.AlignRight)
 
         # Month dropdown
@@ -323,7 +323,7 @@ class SushiConfigDialog(QDialog):
             # Imports the ConfigRepository that already handles config file parsing
             from core.repositories import ConfigRepository
 
-            # Create a repository pointing to default_config.py( almost like an arrow looking to fetch info from it)
+            # Creates a repository pointing to default_config.py( almost like an arrow looking to fetch info from it)
             default_repo = ConfigRepository()
 
             # Try to find default_config.py specifically

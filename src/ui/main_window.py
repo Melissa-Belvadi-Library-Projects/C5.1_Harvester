@@ -259,38 +259,61 @@ class SushiHarvesterGUI(QMainWindow):
 
     def _on_config_changed(self, config: dict):
         """Handle configuration changes."""
+        # Track if provider_file has changed
 
-
+        old_providers_file = self.app_state.config.get('providers_file')
+        old_default_begin = self.app_state.config.get('default_begin')
 
         # Update app state
         self.app_state.update_config(config)
 
-
         # Save to file
         self.config_repo.save(config)
 
-        # Update vendor repository if providers file changed
-        if 'providers_file' in config:
+        # # Update vendor repository if providers file changed
+        # if 'providers_file' in config:
+        #
+        #     self.vendor_repo.providers_file = config['providers_file']
+        #
+        #     # Reload vendors
+        #     vendors_data = self.vendor_repo.load()
+        #     self.app_state.vendors_data = vendors_data
+        #     # self._on_vendors_data_changed(vendors_data)
+        #
+        #     vendor_names = [v['Name'] for v in vendors_data if v.get('Name', '').strip()]
+        #     if hasattr(self.vendor_frame, 'update_items'):
+        #         self.vendor_frame.update_items(vendor_names)
 
+        # Only reload vendors if providers_file actually changed
+        if 'providers_file' in config and config['providers_file'] != old_providers_file:
             self.vendor_repo.providers_file = config['providers_file']
 
-            # Reload vendors
-
             vendors_data = self.vendor_repo.load()
-            self.app_state.vendors_data = vendors_data
-            #self._on_vendors_data_changed(vendors_data)
 
+            for vendor in vendors_data:
+                if 'Id' not in vendor or not vendor.get('Id'):
+                    vendor['Id'] = str(uuid.uuid4())
+
+            self.app_state.vendors_data = vendors_data
 
             vendor_names = [v['Name'] for v in vendors_data if v.get('Name', '').strip()]
             if hasattr(self.vendor_frame, 'update_items'):
                 self.vendor_frame.update_items(vendor_names)
 
-        # Update UI components
-        self.date_selector.set_state({
-            'default_begin': config.get('default_begin', '2025-01'),
-            'start': self.app_state.dates.get('start'),
-            'end': self.app_state.dates.get('end')
-        })
+            # Only update date selector if default_begin changed
+        if config.get('default_begin') != old_default_begin:
+            self.date_selector.set_state({
+                'default_begin': config.get('default_begin', '2025-01'),
+                'start': self.app_state.dates.get('start'),
+                'end': self.app_state.dates.get('end')
+            })
+
+        # # Update UI components
+        # self.date_selector.set_state({
+        #     'default_begin': config.get('default_begin', '2025-01'),
+        #     'start': self.app_state.dates.get('start'),
+        #     'end': self.app_state.dates.get('end')
+        # })
 
     def _on_vendors_changed(self, vendor_names: list):
         """Handle vendor selection changes."""
@@ -418,7 +441,6 @@ class SushiHarvesterGUI(QMainWindow):
         dialog.configChanged.connect(self._on_config_changed)
 
         self.show_modal_with_scrim(dialog)
-
 
 
     def _show_help(self):

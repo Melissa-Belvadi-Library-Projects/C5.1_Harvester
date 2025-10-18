@@ -1,9 +1,15 @@
-"""Data persistence layer for the application."""
-
 import csv
 import json
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
+from typing import Optional
+from pathlib import Path
+
+"""The repositories as a way to get the data without affecting the ui , 
+    its is essentally a middelman where it saves,laods the config data and vendors data and is passed
+
+
+    """
 
 
 class ConfigRepository:
@@ -32,7 +38,6 @@ class ConfigRepository:
     def load(self) -> Dict[str, Any]:
         """Load configuration from file."""
         config = self._get_defaults()
-
 
         try:
             if self.config_file.exists():
@@ -104,17 +109,19 @@ default_begin = '{default_begin}'
 class VendorRepository:
     """Handles vendor data persistence."""
 
+    @staticmethod
+    def get_vendor_name(vendor):
+        """Get vendor name for alphabetical sorting."""
+        return vendor.get('Name', '').lower()
+
     def __init__(self, providers_file: str = 'providers.tsv'):
         """Initialize with providers file name."""
         self.providers_file = providers_file
         self._file_path: Optional[Path] = None
 
-    from typing import Optional
-    from pathlib import Path
- #made the find file more extensive in case users place file in a different folder. it should still be able to find it
+
     def _find_file(self) -> Optional[Path]:
         """Locate the providers file."""
-
 
         # Most common, direct paths (CWD and parent)
         search_paths = [
@@ -159,11 +166,12 @@ class VendorRepository:
 
         if file_path and file_path.exists():
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, 'r', encoding='utf-8-sig') as f:
                     reader = csv.DictReader(f, delimiter='\t')
                     for row in reader:
                         if row.get('Name', '').strip():
                             vendors.append(dict(row))
+                vendors.sort(key=VendorRepository.get_vendor_name)
             except Exception as e:
                 print(f"Error loading vendors: {e}")
         else:
@@ -171,8 +179,107 @@ class VendorRepository:
 
         return vendors
 
+    # load using the load provider logic
+    # def load(self) -> List[Dict[str, str]]:
+    #     """Load vendors from TSV file with robust error handling."""
+    #     vendors = []
+    #     file_path = self._find_file()
+    #
+    #     # Check if file exists
+    #     if not file_path:
+    #         print("ERROR: Could not determine providers file location")
+    #         return []
+    #
+    #     if not file_path.exists():
+    #         print(f"ERROR: Providers file not found: {file_path}")
+    #         return []
+    #
+    #     try:
+    #         with open(file_path, 'r', encoding='utf-8-sig') as f:  # utf-8-sig handles BOM
+    #             # Sniff delimiter to ensure it's tab-delimited
+    #             try:
+    #                 sample = f.read(2048)
+    #                 if not sample.strip():
+    #                     print("ERROR: Providers file is empty")
+    #                     return []
+    #
+    #                 dialect = csv.Sniffer().sniff(sample, delimiters='\t,;')
+    #                 f.seek(0)  # Rewind after sniffing
+    #
+    #                 if dialect.delimiter != '\t':
+    #                     print(
+    #                         f"ERROR: Providers file must be tab-delimited (TSV), but found '{dialect.delimiter}' delimiter")
+    #                     return []
+    #
+    #             except csv.Error as e:
+    #                 print(f"ERROR: Cannot determine file format: {e}")
+    #                 return []
+    #
+    #             # Read with DictReader
+    #             reader = csv.DictReader(f, delimiter='\t')
+    #
+    #             # Validate headers exist
+    #             if not reader.fieldnames:
+    #                 print("ERROR: No headers found in providers file")
+    #                 return []
+    #
+    #             # Validate required headers
+    #             required = ['Name', 'Base_URL', 'Customer_ID', 'Version']
+    #             missing = [h for h in required if h not in reader.fieldnames]
+    #             if missing:
+    #                 print(f"ERROR: Providers file missing required columns: {', '.join(missing)}")
+    #                 print(f"       Found headers: {reader.fieldnames}")
+    #                 return []
+    #
+    #             # Read rows
+    #             row_count = 0
+    #             for row_num, row in enumerate(reader, start=2):
+    #                 # Skip completely empty rows
+    #                 if not any(row.values()):
+    #                     continue
+    #
+    #                 # Skip rows with no name
+    #                 name = row.get('Name', '').strip()
+    #                 if not name:
+    #                     continue
+    #
+    #                 # Warn about non-5.1 versions (but still include)
+    #                 version = row.get('Version', '').strip()
+    #                 if version and version != '5.1':
+    #                     print(f"WARNING: {name} has Version '{version}', expected '5.1'")
+    #
+    #                 vendors.append(dict(row))
+    #                 row_count += 1
+    #
+    #             print(f"INFO: Loaded {row_count} providers from {file_path.name}")
+    #
+    #             if row_count == 0:
+    #                 print("WARNING: No valid providers found in file")
+    #                 return []
+    #
+    #             # Sort alphabetically (case-insensitive)
+    #             vendors.sort(key=lambda v: v.get('Name', '').lower())
+    #
+    #     except UnicodeDecodeError as e:
+    #         print(f"ERROR: File encoding issue - file might not be UTF-8 text")
+    #         print(f"       It could be a binary Excel file (.xlsx)")
+    #         return []
+    #
+    #     except FileNotFoundError:
+    #         print(f"ERROR: File not found: {file_path}")
+    #         return []
+    #
+    #     except PermissionError:
+    #         print(f"ERROR: Permission denied reading: {file_path}")
+    #         return []
+    #
+    #     except Exception as e:
+    #         print(f"ERROR: Unexpected error loading providers: {e}")
+    #         return []
+    #
+    #     return vendors
 
-    def save(self, vendors: List[Dict[str, str]]) :
+    def save(self, vendors: List[Dict[str, str]]):
 
         """Save vendors to TSV file."""
 
@@ -184,14 +291,17 @@ class VendorRepository:
         try:
             file_path.parent.mkdir(parents=True, exist_ok=True)
 
+            sorted_vendors = sorted(vendors, key=VendorRepository.get_vendor_name)
+
             fieldnames = ['Name', 'Base_URL', 'Customer_ID', 'Requestor_ID',
                           'API_Key', 'Platform', 'Version', 'Delay', 'Retry']
 
+            #  Open file for writing
             with open(file_path, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\t')
-                writer.writeheader()
-
-                for vendor in vendors:
+                writer.writeheader()  # Writes header row
+                # Write each vendor
+                for vendor in sorted_vendors:
                     row = {field: vendor.get(field, '') for field in fieldnames}
                     writer.writerow(row)
 

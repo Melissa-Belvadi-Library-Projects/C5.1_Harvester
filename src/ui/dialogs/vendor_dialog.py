@@ -332,13 +332,11 @@ class VendorManagementDialog(QDialog):
         if reply == QMessageBox.StandardButton.Yes:
             vendor_id = current_item.data(Qt.ItemDataRole.UserRole)
 
-
             # Remove from data
             self._vendors_data = [
                 v for v in self._vendors_data
                 if v.get('Id') != vendor_id
             ]
-
 
 
             # Remove from list widget
@@ -442,6 +440,14 @@ class VendorManagementDialog(QDialog):
         # if current_item:
         #     current_item.setText(self._current_vendor['Name'])
 
+
+        #alpha sorts vendor
+        def get_vendor_name_lower(vendor):
+            return vendor.get('Name', '').lower()
+
+        self._vendors_data.sort(key=get_vendor_name_lower)
+
+        # Refreshes the list to show sorted order
         current_vendor_id = self._current_vendor.get('Id')
         self._refresh_vendor_list()
 

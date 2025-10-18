@@ -26,11 +26,26 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
         Dictionary with results
     """
 
-
-    #  refresh values each time..provider file was loading older one
+    # Refresh values each time - reload config and all modules that use it
     import importlib
     import current_config
-    importlib.reload(current_config)  # Force Python to re-read the file
+    import process_item_details as pid_module
+    import convert_counter_json_to_tsv as convert_module
+    import insert_sqlite as insert_module
+    import logger
+
+
+    # Reload config first
+    importlib.reload(current_config)
+
+    # Then reload all modules that import from current_config
+    importlib.reload(pid_module)
+    importlib.reload(convert_module)
+    importlib.reload(insert_module)
+    importlib.reload(logger)
+
+    print(f"DEBUG: Reloaded config - tsv_dir: {current_config.tsv_dir}, json_dir: {current_config.json_dir}")
+    print(f"DEBUG: error_log_file: {current_config.error_log_file}")
 
     from current_config import (
         sqlite_filename,
@@ -42,7 +57,6 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
         save_empty_report,
         always_include_header_metric_types
     )
-
 
     # Set the callback for logger to use
     set_progress_callback(progress_callback)
@@ -128,28 +142,36 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
 
         # Process each provider's reports
         for provider_name, provider_info in providers_dict.items():
-            if is_cancelled():
+            if is_cancelled(): #Check #1, before starting a provider
                 break
 
             report_urls = provider_info.get('Report_URLS', {})
             log(f"Retrieving reports: {provider_name}") # do this line for pause..instead of retrieve ..use completed
 
             for report_id, report_url in report_urls.items():
-                if is_cancelled():
-                    break
+                # if is_cancelled(): #Check 2 , before starting a report
+                #     break
 
                 log_error(f"INFO: Retrieving report: {provider_name}: {report_id.upper()}: {report_url}")
 
                 try:
                     process_item_details(provider_info, report_id, report_url)
+                    # New Log successful completion
+
+                    # if results != -1:  # -1 means failed or skipped
+                    #     log(f"Completed {provider_name}: {report_id.upper()}")
+                    # else:
+                    #     log(f"Skipped {provider_name}: {report_id.upper()} (no data)")
+                    if is_cancelled():
+                        log(f"Completed {provider_name}: {report_id.upper()}")
+                        break
+
 
                 except Exception as e:
                     error_msg = f"Error processing {provider_name}:{report_id}: {str(e)}"
                     log_error(f"ERROR: {error_msg}\n{traceback.format_exc()}")
                     results['errors'].append(error_msg)
-                #around here ..insert infobox
-                # if stop signals , write to progress report ,..completed provider ... take out warning ..only write for the last provider and report  collected
-        #log(f"Retrieving report: {provider_name}: {report_id.upper()}")
+
         log(f"Finished")
         log(f"Check {error_log_file} for problems/reports that failed/exceptions")
 
