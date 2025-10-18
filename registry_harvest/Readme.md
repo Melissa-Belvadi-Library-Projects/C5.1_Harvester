@@ -2,6 +2,8 @@
 This is a small python program that can be used alone or in combination with the main Harvester to help populate the providers.tsv file.
 It pulls a snapshot of the entire [COUNTER Registry](https://registry.countermetrics.org/) data for 5.1 providers into a tab-delimited file.
 
+Do NOT try to use this directly as your providers.tsv template file, because it contains far more columns than the providers.tsv. Some of them have human readable notes that are meant to inform you about possible need to use the "delay" and/or "retry" settings in the providers.tsv file. Others advise you on who to contact or where to look to get your customer_id etc. credentials.
+
 I've also provided a recent run of it, as of May 3, 2025.
 
 Be aware that this information is constantly changing, especially now when many providers are scrambling to get their 5.1 SUSHI servers working and passing the audits.

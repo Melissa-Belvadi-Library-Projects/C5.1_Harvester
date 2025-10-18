@@ -12,4 +12,5 @@ Documentation for COUNTER 5.1 Harvester
 Other useful links:
 - [COUNTER Metrics](https://www.countermetrics.org/) - official website
 - [COUNTER Registry](https://registry.countermetrics.org/) - find information about specific providers' compliance with 5.1
+- - see also the separate Registry Harvest python script provided in this repository for getting a tsv-format snapshot of all of the relevant data in the Registry.  This can help you populate your providers.tsv but do not use it directly as that file as it contains a lot of extra data in it.
 
