@@ -15,3 +15,6 @@ Here are some of them:
 - Wiley: 2024-08
 
 
+Note that Elsevier enforces the 36-month limitation on start-end date range. So you will need to do multiple harvests to get all of the available data for each platform.
+
+Technically they can do that, but most providers who are offering 5.1 data for more than 3 years back allow you to request it all at once.
