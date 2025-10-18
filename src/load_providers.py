@@ -53,7 +53,7 @@ def sanitize_tsv_file(file_path):
         else:
             processed_line = clean_line + '\n'
         if processed_line != line:
-            changes_made = TRUE
+            changes_made = True
         corrected_lines.append(processed_line)
     # --- Overwrite Phase (only if necessary) ---
     if changes_made:

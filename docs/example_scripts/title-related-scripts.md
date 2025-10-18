@@ -35,3 +35,18 @@ where Report_Type like 'TR' and Metric_Type like 'Unique_Item_Investigations' an
 and Title not in (select distinct Title from usage_data ud2  where Metric_Type like '%Requests')
 group by Title, Provider_Name;
 ```
+
+## Book title denials ("No_License")
+
+Find books across all platforms that have one or more turnaways/denials as defined by the COUNTER "No_License" metric, summing up the denials by calendar year. YOP in this situation helps to separate different editions of a book, as the actual edition # may or may not be included in the title. ISBNs are used to distinguish different books with the same title, but that may also have the effect of splintering denials of the same book across two platforms where the platforms do not report the same ISBN (this can happen).
+
+```
+select Title, REPLACE(ISBN, '-', '') as ISBN, sum(Metric_Usage) as Denials, Data_Year as Denials,YOP
+from usage_data
+where
+Data_Type like 'Book'
+and Report_Type like 'TR'
+and Metric_Type like 'No_License'
+group by Title, ISBN, Data_Year, YOP
+order by Denials Desc, Data_Year;
+```
