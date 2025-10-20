@@ -1,11 +1,20 @@
-"""Central state management for COUNTER 5.1 Harvester application."""
+"""
+This module provides:
+- AppState: Dataclass holding all application state
+- AppSignals: PyQt signal bus for state change notifications
+
+Architecture:
+- Create ONE instance of AppState and AppSignals at app startup
+- Pass these instances to all components (windows, dialogs)
+- Components read from AppState and emit AppSignals when state changes
+
+"""
 
 from dataclasses import dataclass, field, asdict
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from PyQt6.QtCore import QObject, pyqtSignal
-
 
 
 @dataclass
@@ -21,15 +30,22 @@ class AppState:
     def __post_init__(self):
         """Initialize default dates if not provided."""
         if not self.dates:
-            self.dates = self._get_default_dates()
+            try:
+                self.dates = self._get_default_dates()
+            except Exception as e:
+                # Fallback for any date calculation errors
+                print(f"Warning: Using fallback dates due to error: {e}")
+                today = datetime.now()
+                self.dates = {"start": f"{today.year}-01", "end": f"{today.year}-12"}
 
     def _get_default_dates(self) -> Dict[str, str]:
+
         """Calculate default date range."""
         today = datetime.now()
         end_date = today - relativedelta(months=1)
 
         # Get start from config or use default
-        default_begin = self.config.get('default_begin', '2025-01')
+        default_begin = self.config.get('default_begin', f"{today.year}-01")
 
         return {
             "start": default_begin,
@@ -40,18 +56,32 @@ class AppState:
         """Update configuration and cascade changes."""
         self.config.update(new_config)
 
-        # Update dates if default_begin changed
         if 'default_begin' in new_config:
-            self.dates["start"] = new_config['default_begin']
+            date_str = new_config['default_begin']
+            # Simple check: does it look like YYYY-MM?
+            if not (len(date_str) == 7 and date_str[4] == '-'):
+                # Don't crash, just warn and skip the update
+                print(f"Warning: Invalid date format '{date_str}', expected YYYY-MM")
+                return
+            self.dates["start"] = date_str
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize state to dictionary."""
         return asdict(self)
 
+    # more secure
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'AppState':
-        """Deserialize state from dictionary."""
-        return cls(**data)
+        """Deserialize state from dictionary with safe defaults."""
+        defaults = {
+            'config': {},
+            'dates': {},
+            'selected_vendors': [],
+            'selected_reports': [],
+            'vendors_data': []
+        }
+        safe_data = {**defaults, **data}
+        return cls(**safe_data)
 
 
 class AppSignals(QObject):
