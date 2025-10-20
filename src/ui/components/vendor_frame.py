@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (
     QScrollArea, QWidget
 )
 from PyQt6.QtGui import QFont
-
+from PyQt6.QtCore import Qt
 
 class VendorFrame(QGroupBox):
     """
@@ -44,7 +44,8 @@ class VendorFrame(QGroupBox):
         self.scroll_layout = QVBoxLayout(self.scroll_widget)
 
         self.add_items(items)
-        self.scroll_layout.addStretch()
+        self.scroll_layout.setAlignment(Qt.AlignmentFlag.AlignTop)  # added this
+
 
         self.scroll_area.setWidget(self.scroll_widget)
         self.scroll_area.setWidgetResizable(True)
@@ -63,19 +64,29 @@ class VendorFrame(QGroupBox):
             self.checkboxes.append(checkbox)
             self.scroll_layout.addWidget(checkbox)
 
-    def update_items(self, new_items):
-        """Replace all checkboxes with a new list of items."""
+    def update_items(self, items: list):
+        """Update the list of items while preserving selections."""
+        # Save current selections before clearing
+        current_selections = self.get_selected()
+
+        # Clear existing checkboxes
         for checkbox in self.checkboxes:
-            checkbox.setParent(None)
+            self.scroll_layout.removeWidget(checkbox)
+            checkbox.deleteLater()
         self.checkboxes.clear()
 
-        while self.scroll_layout.count():
-            child = self.scroll_layout.takeAt(0)
-            if child.widget():
-                child.widget().deleteLater()
+        # Rebuild checkboxes with new items
+        for item in items:
+            checkbox = QCheckBox(item)
 
-        self.add_items(new_items)
-        self.scroll_layout.addStretch()
+            # Restore selection if this item was previously selected
+            if item in current_selections:
+                checkbox.setChecked(True)
+            else:
+                checkbox.setChecked(False)
+
+            self.checkboxes.append(checkbox)
+            self.scroll_layout.addWidget(checkbox)
 
     def get_selected(self):
         """Return list of selected (checked) item labels."""
@@ -97,4 +108,3 @@ class VendorFrame(QGroupBox):
             if checkbox.text() == item_text:
                 checkbox.setChecked(True)
                 break
-
