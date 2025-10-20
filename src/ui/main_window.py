@@ -18,6 +18,7 @@ from core.repositories import ConfigRepository, VendorRepository
 from ui.dialogs.progress_dialog import ProgressDialog
 
 # Import UI components
+from typing import Optional, List, Dict
 from ui.components.vendor_frame import VendorFrame
 from ui.components.date_selector import DateSelector
 from ui.dialogs.settings_dialog import SushiConfigDialog
@@ -47,9 +48,16 @@ class SushiHarvesterGUI(QMainWindow):
         self.app_state = AppState()
         self.signals = AppSignals()
 
-        # Initialize repositories
-        self.config_repo = ConfigRepository()
-        self.vendor_repo = VendorRepository()
+        # # Initialize repositories
+        # self.config_repo = ConfigRepository()
+        # self.vendor_repo = VendorRepository()
+
+        # Initialize repositories and INJECT the signal bus
+        self.config_repo = ConfigRepository(signals=self.signals)  # Pass signals
+        self.vendor_repo = VendorRepository(signals=self.signals)  #  Pass signals
+
+        # Connect error handler
+        self.signals.errorOccurred.connect(self._on_error)  # ← Your connection
 
         # Load initial state
         self._load_initial_state()
@@ -67,6 +75,13 @@ class SushiHarvesterGUI(QMainWindow):
 
         # Apply initial state to components
         self._apply_state_to_ui()
+
+    # def show_error(self, message: str):
+    #     """Display error message to user."""
+    #     QMessageBox.critical(self, "Error", message)
+    def _on_error(self, message: str):
+        """Handle error messages."""
+        QMessageBox.critical(self, "Error", message)
 
     def resizeEvent(self, event):
         """Ensure scrim covers entire window when resized."""
@@ -91,6 +106,23 @@ class SushiHarvesterGUI(QMainWindow):
 
         return result
 
+    def _ensure_vendor_ids(self, vendors_data: List[Dict]) -> None:
+        """
+        Ensure all vendors have unique IDs.
+
+        Generates UUIDs for vendors that don't have an 'Id' field.
+        This is needed because older TSV files may not have IDs.
+        """
+        for vendor in vendors_data:
+            if 'Id' not in vendor or not vendor.get('Id'):
+                try:
+                    vendor['Id'] = str(uuid.uuid4())
+                except Exception as e:
+                    # Fallback if UUID generation fails
+                    import random
+                    vendor['Id'] = f"vendor_{random.randint(100000, 999999)}"
+                    print(f"Warning: UUID generation failed, using fallback ID: {e}")
+
     def _load_initial_state(self):
 
         """Load initial configuration and vendor data."""
@@ -107,9 +139,7 @@ class SushiHarvesterGUI(QMainWindow):
         vendors_data = self.vendor_repo.load()
 
 #ensures each vendor has its unique ID
-        for vendor in vendors_data:
-            if 'Id' not in vendor or not vendor.get('Id'):
-                vendor['Id'] = str(uuid.uuid4())
+        self._ensure_vendor_ids(vendors_data)
 
         self.app_state.vendors_data = vendors_data
 
@@ -213,7 +243,7 @@ class SushiHarvesterGUI(QMainWindow):
         self.signals.vendorsChanged.connect(self._on_vendors_changed)
         self.signals.vendorsDataChanged.connect(self._on_vendors_data_changed)
         self.signals.reportsChanged.connect(self._on_reports_changed)
-        self.signals.errorOccurred.connect(self._on_error)
+        # self.signals.errorOccurred.connect(self._on_error)
         self.signals.saveRequested.connect(self._save_all_state)
 
     def _apply_state_to_ui(self):
@@ -261,6 +291,19 @@ class SushiHarvesterGUI(QMainWindow):
         """Handle configuration changes."""
         # Track if provider_file has changed
 
+        # # DEBUG
+        # print("\n" + "=" * 80)
+        # print("DEBUG: Config changed in main_window._on_config_changed()")
+        # print("=" * 80)
+        # print(f"Old config values:")
+        # print(f"  tsv_dir (old): {self.app_state.config.get('tsv_dir')}")
+        # print(f"  json_dir (old): {self.app_state.config.get('json_dir')}")
+        # print(f"\nNew config values:")
+        # print(f"  tsv_dir (new): {config.get('tsv_dir')}")
+        # print(f"  json_dir (new): {config.get('json_dir')}")
+        # print("=" * 80 + "\n")
+        # #  DEBUG LOGGING
+
         old_providers_file = self.app_state.config.get('providers_file')
         old_default_begin = self.app_state.config.get('default_begin')
 
@@ -290,9 +333,7 @@ class SushiHarvesterGUI(QMainWindow):
 
             vendors_data = self.vendor_repo.load()
 
-            for vendor in vendors_data:
-                if 'Id' not in vendor or not vendor.get('Id'):
-                    vendor['Id'] = str(uuid.uuid4())
+            self._ensure_vendor_ids(vendors_data) # ensures vendor have ID
 
             self.app_state.vendors_data = vendors_data
 
@@ -324,10 +365,8 @@ class SushiHarvesterGUI(QMainWindow):
         # Update state
         self.app_state.vendors_data = vendors_data
 
-#ensures all vendors have id before saving
-        for vendor in vendors_data:
-            if 'Id' not in vendor or not vendor.get('Id'):
-                vendor['Id'] = str(uuid.uuid4())
+        #ensures all vendors have id before saving
+        self._ensure_vendor_ids(vendors_data)
 
         # Save to file
         self.vendor_repo.save(vendors_data)
@@ -346,9 +385,6 @@ class SushiHarvesterGUI(QMainWindow):
         """Handle report selection changes."""
         self.app_state.selected_reports = report_names
 
-    def _on_error(self, message: str):
-        """Handle error messages."""
-        QMessageBox.critical(self, "Error", message)
 
     def _save_all_state(self):
         """Save all current state to disk."""
@@ -386,8 +422,19 @@ class SushiHarvesterGUI(QMainWindow):
         if not is_valid:
             QMessageBox.critical(self, "Error", error_msg)
             return
+            #
+            # DEBUG
+            # print("\n" + "=" * 80)
+            # print("DEBUG: Creating HarvesterConfig in main_window._on_start()")
+            # print("=" * 80)
+            # print(f"app_state.config keys: {list(self.app_state.config.keys())}")
+            # print(f"app_state.config values:")
+            # for key, value in self.app_state.config.items():
+            #     print(f"  {key}: {value}")
+            # print("=" * 80 + "\n")
 
-        # Create harvester config - simpler now!
+
+        # Create harvester config
         from dataclasses import dataclass
 
         @dataclass

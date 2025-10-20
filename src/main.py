@@ -171,7 +171,6 @@ def main():
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
     app.setStyleSheet(GLOBAL_QSS)
-
     window = SushiHarvesterGUI()
     window.show()
 
