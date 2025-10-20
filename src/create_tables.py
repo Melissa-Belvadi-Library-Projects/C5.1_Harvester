@@ -1,11 +1,14 @@
 # create_tables.py
 # create the sqlite table using the list from data_columns
+
 from logger import log_error
-from current_config import sqlite_filename, data_table
+#from current_config import sqlite_filename, data_table-D
+# Removed - will be passed as parameters-D
 from data_columns import data_columns, data_columns_sql
 
 
-def create_data_table(cursor):
+def create_data_table(cursor,data_table):
+    # Added data_table parameter- Daniel
     #Create the data table in the SQLite database
     # data_columns_sql sets the column types for all columns, including Row_Hash as primary key
     local_data_columns = data_columns_sql.copy()

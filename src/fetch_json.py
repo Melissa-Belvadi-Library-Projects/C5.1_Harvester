@@ -8,7 +8,8 @@ from dateutil.relativedelta import relativedelta
 import brotli
 from logger import log_error
 import traceback
-from current_config import error_log_file, default_begin
+#from current_config import error_log_file, default_begin
+#Removed - not actually used in this file (only imports for reference)
 from tsv_utils import default_metric_types, official_reports #default metric types is also a list of all possible valid report types, as the keys
 #from requests.exceptions import SSLError
 #from urllib3.exceptions import SSLCertVerificationError

@@ -1,7 +1,8 @@
 import sqlite3
 import hashlib
 from logger import log_error
-from current_config import data_table
+#from current_config import data_table
+# Removed - will be passed as parameter
 from data_columns import data_columns
 
 def normalize_column_names(data_dict):
@@ -39,9 +40,14 @@ def generate_unique_hash(data_dict, data_columns):
     hash_input = "||".join(values)
     return hashlib.md5(hash_input.encode('utf-8')).hexdigest()
 
-def insert_sqlite(data_dict, report_id, cursor,conn):
+def insert_sqlite(data_dict, report_id, cursor, conn ,config):
     #Insert or update data into SQLite.
+    #pass config so insert_sqlite can access data_table
     try:
+
+        # Extract data_table from config instead of using cached import.
+        data_table = config['data_table'] #New - Daniel
+
 
         table_name = data_table
         # Build the SELECT query to fetch the entire row for comparison

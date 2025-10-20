@@ -12,7 +12,8 @@ from data_columns import data_columns  # Assuming this contains your SQLite tabl
 from logger import log_error
 from fetch_json import get_json_data  # generic routine to get json report with various error handling, headers, content encoding, etc.
 from insert_sqlite import insert_sqlite
-from current_config import sqlite_filename, json_dir, error_log_file, save_empty_report
+#from current_config import sqlite_filename, json_dir, error_log_file, save_empty_report
+#removing it as these values get cached at import time. We'll pass them through the call chain instead-Daniel
 from convert_counter_json_to_tsv import convert_counter_json_to_tsv
 
 
@@ -93,7 +94,8 @@ def publisher_id_string(publisher_id_data):
 
 # Note distinction between report_id which includes my EX pretend standard views and report_type
 ### which comes directly from the actual report header and for the EX ones, will be the 2-letter master report
-def save_json(report_json, report_id, provider_info, json_folder=json_dir, save_empty=False, report_items=None):
+def save_json(report_json, report_id, provider_info, json_folder, save_empty=False, report_items=None):
+    #Removed the default parameter that uses imported json_dir, will pass explicitly
     vendor = provider_info.get('Name', '').replace(' ','_')
     subfolder = os.path.join(json_folder, vendor)
     if not os.path.exists(json_folder):
@@ -203,8 +205,16 @@ def parse_tsv_file(file_path, provider_name, report_type):
     return result_rows
 
 
-def process_item_details(provider_info,report_type,get_report_url):
+def process_item_details(provider_info,report_type,get_report_url,config):
+    #dded 'config' parameter,it now receives config dict from getcounter.py
+
+    #  Extract the values we need from the config dict. Now these are local variables with current values.
+    sqlite_filename = config['sqlite_filename']
+    json_dir = config['json_dir']
+    error_log_file = config['error_log_file']
+    save_empty_report = config['save_empty_report']
     provider_name = provider_info.get('Name')
+
     if not all((provider_info,report_type,get_report_url)):
         log_error(f"ERROR:  missing one or more of the function parameters\n")
         return -1
@@ -254,7 +264,8 @@ def process_item_details(provider_info,report_type,get_report_url):
         log_error(f'ERROR: Unable to save json for {provider_info} {report_type.upper()};\nreport_data={report_data}\n')
         return -1
 
-    tsv_saved_file = convert_counter_json_to_tsv(report_type.upper(),json_saved_filename, provider_info)
+    tsv_saved_file = convert_counter_json_to_tsv(report_type.upper(),json_saved_filename, provider_info,config)
+    # added config parameter so that it cn pass config to the next function in the chain so it can access tsv_dir.-Daniel
 
     if not tsv_saved_file:
         print(f'Unable to save tsv for: {provider_name}: {report_type.upper()}; see {error_log_file} for details\n')
@@ -304,7 +315,8 @@ def process_item_details(provider_info,report_type,get_report_url):
     for row in rows:
         try:
             ####### The actual insert per each row of usage data
-            insert_sqlite(row,report_type,cursor,conn)
+            insert_sqlite(row,report_type,cursor,conn,config) # Added config- Daniel
+            # pass config dict so insert_sqlite can access data_table -Daniel
         except sqlite3.OperationalError as e:
             # Handle operational errors (e.g., unable to connect, missing table, etc.)
             log_error(f"ERROR: OperationalError: {e}")

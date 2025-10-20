@@ -7,7 +7,8 @@ from dateutil.relativedelta import relativedelta
 import inspect
 import tsv_utils
 from tsv_utils import default_metric_types, format_nested_id, format_exceptions
-from current_config import tsv_dir, always_include_header_metric_types, save_empty_report
+#from current_config import tsv_dir, always_include_header_metric_types, save_empty_report
+# Removed - will be passed as parameters,these values get cached at import time. We'll extract them from config dict instead.-Daniel
 from logger import log_error
 from reporting_period import reporting_period_build
 from convert_ir_reports import get_ir_a1_data, get_ir_m1_data, get_ir_data, get_ir_ex_data
@@ -125,8 +126,15 @@ def ir_a1_extract_metrics_and_dates(report_items):#IR_A1/IR_M1 metrics and date 
                     usage_dates_list.update(dates.keys())
     return sorted(metric_type_list), sorted(usage_dates_list)
 
-def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
+def convert_counter_json_to_tsv(report_type, json_file_path,provider_info,config):
+    # Added config parameter-Daniel
     #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
+
+    # Extract config values, These override any cached imports.-Daniel
+    tsv_dir = config['tsv_dir']
+    always_include_header_metric_types = config['always_include_header_metric_types']
+    save_empty_report = config['save_empty_report']
+
     try:
         # Load JSON data for reading
         with open(json_file_path, "r", encoding="utf-8") as f:

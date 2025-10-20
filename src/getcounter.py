@@ -8,8 +8,18 @@ from load_providers import load_providers
 from fetch_json import fetch_json
 from process_item_details import process_item_details
 
+# Import VendorRepository to find the providers file the same way GUI does
+import sys
+from pathlib import Path
+parent_dir = Path(__file__).parent.parent
+if str(parent_dir) not in sys.path:
+    sys.path.insert(0, str(parent_dir))
+from core.repositories import VendorRepository, ConfigRepository
 
-def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
+from logger import set_error_log_file
+
+
+def run_harvester(begin_date, end_date, selected_vendors, selected_reports, config_dict,
                   progress_callback=None, is_cancelled_callback=None):
     """
     Run the COUNTER harvester with given parameters.
@@ -19,6 +29,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
         end_date: End date in YYYY-MM format
         selected_vendors: List of vendor names to process (empty list = all vendors)
         selected_reports: List of report types like ['DR', 'TR', 'PR', 'IR']
+        config_dict: Settings (where to save files, database name, etc.)
         progress_callback: function to call with progress messages
         is_cancelled_callback:  function that returns True if user cancelled
 
@@ -26,37 +37,26 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
         Dictionary with results
     """
 
-    # Refresh values each time - reload config and all modules that use it
-    import importlib
-    import current_config
-    import process_item_details as pid_module
-    import convert_counter_json_to_tsv as convert_module
-    import insert_sqlite as insert_module
-    import logger
+    # Get default configuration values and merge with provided config
+    #What this does , ConfigRepository()._get_defaults() = Get default settings from default_config.py
+    #{**defaults, **config_dict} = Merge defaults with user's custom settings
+    #Why? In the rare case ,user might not have set ALL settings, so we use defaults for missing ones.
 
+    defaults = ConfigRepository()._get_defaults()
+    config = {**defaults, **config_dict}  # Merge: defaults + user settings
 
-    # Reload config first
-    importlib.reload(current_config)
+    # Extract config values (all keys guaranteed to exist)
+    sqlite_filename = config['sqlite_filename']
+    providers_file = config['providers_file']
+    error_log_file = config['error_log_file']
+    json_dir = config['json_dir']
+    tsv_dir = config['tsv_dir']
+    data_table = config['data_table']
+    save_empty_report = config['save_empty_report']
+    always_include_header_metric_types = config['always_include_header_metric_types']
 
-    # Then reload all modules that import from current_config
-    importlib.reload(pid_module)
-    importlib.reload(convert_module)
-    importlib.reload(insert_module)
-    importlib.reload(logger)
-
-    print(f"DEBUG: Reloaded config - tsv_dir: {current_config.tsv_dir}, json_dir: {current_config.json_dir}")
-    print(f"DEBUG: error_log_file: {current_config.error_log_file}")
-
-    from current_config import (
-        sqlite_filename,
-        providers_file,
-        error_log_file,
-        json_dir,
-        tsv_dir,
-        data_table,
-        save_empty_report,
-        always_include_header_metric_types
-    )
+    # Configure logger with current error log file,tells logger where to write errors using current config.
+    set_error_log_file(error_log_file)
 
     # Set the callback for logger to use
     set_progress_callback(progress_callback)
@@ -86,6 +86,18 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
         current_time = datetime.now()
         log_error(f'INFO: Start of harvester run: {current_time}')
 
+        # Find the full path to the providers file using same logic as GUI-Daniel
+        vendor_repo = VendorRepository(providers_file=providers_file)
+        providers_file_path = vendor_repo._find_file()
+
+        # Validate that file exists
+        if not providers_file_path or not providers_file_path.exists():
+            error_msg = f"Providers file '{providers_file}' not found"
+            log(f"ERROR: {error_msg}")
+            results['errors'].append(error_msg)
+            return results
+
+
         # Build user_selections for load_providers
         user_selections = {
             'start_date': begin_date,
@@ -103,7 +115,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
             log(f"WARNING: {msg}")
 
         providers = load_providers(
-            providers_file,
+            str(providers_file_path),
             user_selections,
             error_callback,
             warning_callback
@@ -133,7 +145,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
         # Initialize database
         conn = sqlite3.connect(sqlite_filename)
         cursor = conn.cursor()
-        create_data_table(cursor)
+        create_data_table(cursor, data_table)  # Pass data_table from config-Daniel
         conn.commit()
         conn.close()
 
@@ -149,19 +161,13 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports,
             log(f"Retrieving reports: {provider_name}") # do this line for pause..instead of retrieve ..use completed
 
             for report_id, report_url in report_urls.items():
-                # if is_cancelled(): #Check 2 , before starting a report
-                #     break
 
                 log_error(f"INFO: Retrieving report: {provider_name}: {report_id.upper()}: {report_url}")
 
                 try:
-                    process_item_details(provider_info, report_id, report_url)
-                    # New Log successful completion
+                    process_item_details(provider_info, report_id, report_url,config)
+                    #Pass config dict
 
-                    # if results != -1:  # -1 means failed or skipped
-                    #     log(f"Completed {provider_name}: {report_id.upper()}")
-                    # else:
-                    #     log(f"Skipped {provider_name}: {report_id.upper()} (no data)")
                     if is_cancelled():
                         log(f"Completed {provider_name}: {report_id.upper()}")
                         break
