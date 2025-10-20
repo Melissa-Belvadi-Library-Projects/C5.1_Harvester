@@ -11,13 +11,15 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 import uuid
+from typing import Optional, List, Dict
 from help_file import get_help_url
 
 
 class VendorManagementDialog(QDialog):
     """
     Dialog for managing vendors with state-based approach.
-    No direct file I/O - emits signals when vendors been changed .
+    No direct file I/O - emits signals when vendors are changed.
+    Signals: vendorsChanged (names list), vendorsDataChanged (full data)
 
     """
 
@@ -54,10 +56,10 @@ class VendorManagementDialog(QDialog):
         # Create splitter for two-panel layout
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        #left panel is the list of vendors
+        # left panel is the list of vendors
         left_panel = self._create_vendor_list_panel()
 
-        #right panel is where the user cna modify the provider details
+        # right panel is where the user cna modify the provider details
         right_panel = self._create_vendor_details_panel()
 
         splitter.addWidget(left_panel)
@@ -74,7 +76,6 @@ class VendorManagementDialog(QDialog):
         button_layout.addWidget(help_btn)
 
         button_layout.addStretch()
-
 
         close_btn = QPushButton("Close")
         close_btn.clicked.connect(self._handle_close)
@@ -213,15 +214,6 @@ class VendorManagementDialog(QDialog):
         finally:
             self._updating = False
 
-    def _check_duplicate_name(self):
-        """Check if current vendor name is duplicate."""
-        new_name = self.name_edit.text().strip()
-        for vendor in self._vendors_data:
-            if vendor != self._current_vendor and vendor.get('Name') == new_name:
-                QMessageBox.warning(self, "Duplicate Name", "...")
-                return False
-        return True
-
     def _refresh_vendor_list(self):
         """Refresh the vendor list widget."""
         self.vendor_list.clear()
@@ -242,7 +234,6 @@ class VendorManagementDialog(QDialog):
         """Handle vendor selection from list."""
 
         vendor_id = item.data(Qt.ItemDataRole.UserRole)
-
 
         if self._has_unsaved_changes:
 
@@ -305,7 +296,7 @@ class VendorManagementDialog(QDialog):
         self._vendors_data.append(new_vendor)
 
         item = QListWidgetItem(new_vendor['Name'])
-        item.setData(Qt.ItemDataRole.UserRole, new_vendor['Id']) #ID
+        item.setData(Qt.ItemDataRole.UserRole, new_vendor['Id'])  # ID
         self.vendor_list.addItem(item)
         self.vendor_list.setCurrentItem(item)
 
@@ -315,21 +306,26 @@ class VendorManagementDialog(QDialog):
 
         self.name_edit.selectAll()
         self.name_edit.setFocus()
-
     def _remove_vendor(self):
         """Remove selected vendor."""
         current_item = self.vendor_list.currentItem()
         if not current_item:
             return
+        vendor_name = current_item.text()
 
-        reply = QMessageBox.question(
-            self, "Confirm Removal",
-            f"Remove '{current_item.text()}'?",
-            QMessageBox.StandardButton.Yes |
-            QMessageBox.StandardButton.No
-        )
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Confirm Removal")
+        msg_box.setText(f"Are you sure you want to remove {vendor_name}?")
 
-        if reply == QMessageBox.StandardButton.Yes:
+        msg_box.setIcon(QMessageBox.Icon.Question)
+
+        yes_btn = msg_box.addButton("Yes", QMessageBox.ButtonRole.YesRole)
+        no_btn = msg_box.addButton("No", QMessageBox.ButtonRole.NoRole)
+        msg_box.setDefaultButton(no_btn)
+
+        msg_box.exec()
+
+        if msg_box.clickedButton() == yes_btn:
             vendor_id = current_item.data(Qt.ItemDataRole.UserRole)
 
             # Remove from data
@@ -337,7 +333,6 @@ class VendorManagementDialog(QDialog):
                 v for v in self._vendors_data
                 if v.get('Id') != vendor_id
             ]
-
 
             # Remove from list widget
             row = self.vendor_list.row(current_item)
@@ -350,7 +345,6 @@ class VendorManagementDialog(QDialog):
 
             # Check if emission happens
             if not self._updating:
-
                 self._emit_vendors_changed()
 
     def _populate_form(self, vendor_data: Dict[str, str]):
@@ -413,15 +407,6 @@ class VendorManagementDialog(QDialog):
             return False
 
         new_name = self.name_edit.text().strip()
-        # Check if name already exists (excluding current vendor)
-        for vendor in self._vendors_data:
-            if vendor != self._current_vendor and vendor.get('Name') == new_name:
-                QMessageBox.warning(
-                    self, "Duplicate Name",
-                    f"A provider named '{new_name}' already exists.\n"
-                    f"Please use a unique name."
-                )
-                return False
 
         # Update vendor data
         self._current_vendor['Name'] = self.name_edit.text().strip()
@@ -434,18 +419,13 @@ class VendorManagementDialog(QDialog):
         self._current_vendor['Delay'] = self.delay_edit.text().strip()
         self._current_vendor['Retry'] = self.retry_edit.text().strip()
 
-
         # Update list item
         # current_item = self.vendor_list.currentItem()
         # if current_item:
         #     current_item.setText(self._current_vendor['Name'])
 
-
-        #alpha sorts vendor
-        def get_vendor_name_lower(vendor):
-            return vendor.get('Name', '').lower()
-
-        self._vendors_data.sort(key=get_vendor_name_lower)
+        # Sort vendors alphabetically
+        self._vendors_data.sort(key=lambda v: v.get('Name', '').lower())
 
         # Refreshes the list to show sorted order
         current_vendor_id = self._current_vendor.get('Id')
@@ -461,11 +441,11 @@ class VendorManagementDialog(QDialog):
         self.save_vendor_btn.setEnabled(False)
         self._has_unsaved_changes = False
 
+        # This ensures app state is always current
+        self._emit_vendors_changed()
         return True
 
-
-
-    def _validate_current_vendor(self) :
+    def _validate_current_vendor(self):
         """Validate current vendor data."""
         name = self.name_edit.text().strip()
         base_url = self.base_url_edit.text().strip()
@@ -534,7 +514,7 @@ class VendorManagementDialog(QDialog):
             # Just two clear options
             save_btn = msg_box.addButton("Save And Close", QMessageBox.ButtonRole.AcceptRole)
             discard_btn = msg_box.addButton("Close Without Saving", QMessageBox.ButtonRole.RejectRole)
-            #cancel_btn = msg_box.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
+            # cancel_btn = msg_box.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
 
             msg_box.setDefaultButton(save_btn)
             msg_box.exec()
@@ -548,6 +528,7 @@ class VendorManagementDialog(QDialog):
 
         else:
             self.accept()
+
     def _show_help(self):
         """Show help documentation."""
         help_url = get_help_url("providers")
@@ -569,16 +550,6 @@ class VendorManagementDialog(QDialog):
                     f"(Could not open browser: {e})"
                 )
 
-    # def closeEvent(self, event):
-    #     """Handle window close event (X button)."""
-    #     # Call the same logic as Close button
-    #     # If user cancels inside _handle_close, ignore the event
-    #     old_result = self.result()  # store current dialog result (0 = not closed yet)
-    #     self._handle_close()
-    #     if self.result() == old_result:
-    #         event.ignore()
-    #     else:
-    #         event.accept()
     def closeEvent(self, event):
         """Handle window close event (X button)."""
         if self._has_unsaved_changes:

@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 import getcounter
 
 
+
 class HarvesterThread(QThread):
     """
     Background thread that calls the harvester backend directly.
@@ -27,7 +28,7 @@ class HarvesterThread(QThread):
     log_signal = pyqtSignal(str)  # Log messages
     finished_signal = pyqtSignal(bool, dict)  # success, results
 
-    def __init__(self, begin_date, end_date, vendors, reports):
+    def __init__(self, begin_date, end_date, vendors, reports, config_dict):
         """
         Initialize with harvester parameters.
 
@@ -42,7 +43,9 @@ class HarvesterThread(QThread):
         self.end_date = end_date
         self.vendors = vendors
         self.reports = reports
+        self.config_dict = config_dict #storing dict
         self._is_cancelled = False
+        self._has_started_processing = False # for if the user stops before any report ws retrieved
 
     def run(self):
         """Execute harvester in background thread."""
@@ -60,6 +63,7 @@ class HarvesterThread(QThread):
                 end_date=self.end_date,
                 selected_vendors=self.vendors,
                 selected_reports=self.reports,
+                config_dict=self.config_dict,
                 progress_callback=self._handle_progress,
                 is_cancelled_callback=lambda: self._is_cancelled #pass the cancel function through here
             )
@@ -80,11 +84,19 @@ class HarvesterThread(QThread):
     def cancel(self):
         """Cancel the running harvest."""
         self._is_cancelled = True
-        self.log_signal.emit("Cancellation requested,finishing saving the last report started before the Stop request...")
+        if self._has_started_processing:
+            self.log_signal.emit("Cancellation requested, finishing saving the last report started before the Stop request...")
+        else:
+            self.log_signal.emit("Cancellation requested")
 
     def _handle_progress(self, message):
         """Handle progress messages from harvester backend."""
+        # Detects when we start processing reports
+        if "Retrieving reports:" in message or "Retrieving report:" in message:
+            self._has_started_processing = True
         self.log_signal.emit(message)
+
+
 
 
 class ProgressDialog(QDialog):
@@ -102,9 +114,10 @@ class ProgressDialog(QDialog):
             parent: Parent widget
         """
         super().__init__(parent)
-
+# Allows users to resize if they need to see more content, but starts at your preferred size.
         self.setWindowTitle("Harvester Progress")
-        self.setFixedSize(900, 600)
+        self.setMinimumSize(900, 600)  # Changed from setFixedSize to setMinimumSize
+        self.resize(900, 600)  #  Added this line (sets initial size)
         self.setModal(True)
 
         # Store configuration
@@ -121,12 +134,6 @@ class ProgressDialog(QDialog):
     def _setup_ui(self):
         """Create UI layout."""
         layout = QVBoxLayout(self)
-
-        # Title label
-        #title_label = QLabel("COUNTER 5.1 Harvester")
-        #title_label.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-        #title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        #layout.addWidget(title_label)
 
         # Log text area
         log_label = QLabel("Progress Log:")
@@ -178,7 +185,8 @@ class ProgressDialog(QDialog):
             begin_date=self.config.start_date,
             end_date=self.config.end_date,
             vendors=self.config.vendors,
-            reports=self.config.reports
+            reports=self.config.reports,
+            config_dict = self.config.config
         )
 
         # Connect signals
@@ -197,13 +205,22 @@ class ProgressDialog(QDialog):
         scrollbar.setValue(scrollbar.maximum())
 
     def _stop_harvester(self):
-        """Stop the running harvester immediately."""
+        """Stop the running harvester and wait for thread to finish."""
         if self.harvester_thread and self.harvester_thread.isRunning():
             self.harvester_thread.cancel()
             self.stop_button.setEnabled(False)
+            self.stop_button.setText("Stopping...")
+
+            # Wait for thread to finish (with timeout)
+            if not self.harvester_thread.wait(5000):  # 5 second timeout
+                self.log_text.append("Please wait a moment.")
+
+            self.stop_button.setText("Stop")
+
+
 
     def _on_finished(self, success: bool, results: dict):
-        """Handle harvester completion."""
+        """Handle harvester completion with simple, friendly messages."""
         self.results = results
 
         # Update UI state
@@ -211,45 +228,23 @@ class ProgressDialog(QDialog):
         self.close_button.setEnabled(True)
         self.save_log_button.setEnabled(True)
 
-        # if results.get('cancelled'):
-        #
-        #     # User cancelled
-        #     self._log_message("\n" + "=" * 60)
-        #     self._log_message("HARVESTER CANCELLED")
-        #     self._log_message("=" * 60)
-        #
-        #     QMessageBox.information(
-        #         self,
-        #         "Cancelled",
-        #         "Harvester was cancelled by user."
-        #     )
-        #
-        # elif results.get('errors'):
-        #     # Had errors
-        #     self._log_message("\n" + "=" * 60)
-        #     self._log_message("HARVESTER COMPLETED WITH ERRORS")
-        #     self._log_message("=" * 60)
-        #     self._log_message(f"Errors encountered: {len(results['errors'])}")
-        #     for err in results['errors'][:10]:
-        #         self._log_message(f"  - {err}")
-        #     self._log_message("=" * 60)
-        #
-        #     QMessageBox.warning(
-        #         self,
-        #         "Completed with Errors",
-        #         f"Harvester completed but encountered {len(results['errors'])} error(s).\n\n"
-        #         f"Check the log for details."
-        #     )
-        #
-        # else:
-        #
-        #     # Success - no errors
-        #     QMessageBox.information(
-        #         self,
-        #         "Success",
-        #         "Harvester completed\n\n"
-        #         f"Check infolog for details."
-        #     )
+        # Case 1: Cancelled
+        if results.get('cancelled') or (self.harvester_thread and self.harvester_thread._is_cancelled):
+
+            QMessageBox.information(
+                self,
+                "Harvester Cancelled",
+                "Harvester cancelled."
+            )
+            return
+
+        # Case 2: Success
+        QMessageBox.information(
+            self,
+            "Harvester Finished",
+            "Harvester finished"
+        )
+
 
     def _save_log(self):
         """Save log to file."""
@@ -292,4 +287,8 @@ class ProgressDialog(QDialog):
 
         else:
             # Allow close when harvester is done
+            if self.harvester_thread:
+                self.harvester_thread.wait()
+                self.harvester_thread.deleteLater()
             event.accept()
+
