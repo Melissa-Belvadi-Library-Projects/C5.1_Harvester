@@ -45,7 +45,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
     defaults = ConfigRepository()._get_defaults()
     config = {**defaults, **config_dict}  # Merge: defaults + user settings
 
-    # Extract config values (all keys guaranteed to exist)
+    # Extract config values (all keys guaranteed to exist)-Daniel
     sqlite_filename = config['sqlite_filename']
     providers_file = config['providers_file']
     error_log_file = config['error_log_file']
@@ -55,7 +55,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
     save_empty_report = config['save_empty_report']
     always_include_header_metric_types = config['always_include_header_metric_types']
 
-    # Configure logger with current error log file,tells logger where to write errors using current config.
+    # Configure logger with current error log file,tells logger where to write errors using current config-Daniel
     set_error_log_file(error_log_file)
 
     # Set the callback for logger to use
@@ -114,11 +114,15 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
         def warning_callback(msg):
             log(f"WARNING: {msg}")
 
+        def general_callback(msg):
+            log(f"{msg}")
+
         providers = load_providers(
             str(providers_file_path),
             user_selections,
             error_callback,
-            warning_callback
+            warning_callback,
+            general_callback
         )
 
         if not providers:
@@ -158,15 +162,19 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
                 break
 
             report_urls = provider_info.get('Report_URLS', {})
+            #log_error(f'DEBUG gc: report list for {provider_name}: {report_urls}\n')
             log(f"Retrieving reports: {provider_name}") # do this line for pause..instead of retrieve ..use completed
 
             for report_id, report_url in report_urls.items():
 
                 log_error(f"INFO: Retrieving report: {provider_name}: {report_id.upper()}: {report_url}")
+                current_timestamp = datetime.now()
+                formatted_time = current_timestamp.strftime("%M:%S")
+                #log_error(f"DEBUG gc: Retrieving report at:{formatted_time} : {provider_name}: {report_id.upper()}: {report_url}")
 
                 try:
                     process_item_details(provider_info, report_id, report_url,config)
-                    #Pass config dict
+                    #Pass config dict-Daniel
 
                     if is_cancelled():
                         log(f"Completed {provider_name}: {report_id.upper()}")
