@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPalette, QColor
-
+from datetime import datetime
 from help_file import get_help_url
 
 
@@ -31,6 +31,8 @@ class SushiConfigDialog(QDialog):
 
         self.setWindowTitle("Settings")
         self.setFixedSize(500, 450)
+
+
 
         # State management
         #state = the current values of the UI and the data it represents.
@@ -101,10 +103,22 @@ class SushiConfigDialog(QDialog):
         row += 1
         fields_layout.addWidget(QLabel("Providers File:"), row, 0,
                                 Qt.AlignmentFlag.AlignRight)
+
+        # Container for text field + browse button
+        providers_layout = QHBoxLayout()
         self.fields['providers_file'] = QLineEdit()
-        self.fields['providers_file'].editingFinished.connect(self._on_providers_file_changed) #updates the main window providers once saved
         self.fields['providers_file'].setFixedWidth(170)
-        fields_layout.addWidget(self.fields['providers_file'], row, 1)
+        providers_layout.addWidget(self.fields['providers_file'])
+
+        browse_providers_btn = QPushButton("Browse...")
+        browse_providers_btn.setFixedWidth(100)
+        browse_providers_btn.clicked.connect(lambda: self._browse_file('providers_file'))
+        providers_layout.addWidget(browse_providers_btn)
+        providers_layout.addStretch()
+
+        providers_widget = QWidget()
+        providers_widget.setLayout(providers_layout)
+        fields_layout.addWidget(providers_widget, row, 1)
 
         # Save Empty Reports checkbox
         row += 1
@@ -269,19 +283,6 @@ class SushiConfigDialog(QDialog):
 
         self.save_btn.setEnabled(has_changes and all_filled)
 
-
-    def _on_providers_file_changed(self):
-
-        """Emit configChanged immediately when providers_file changes."""
-
-        providers_file = self.fields['providers_file'].text()
-
-        # Build current config and emit it
-        config = self.get_state()
-
-        #self.configChanged.emit(config) removed automatic emission
-
-
     def _save_changes(self):
         """Save configuration changes."""
         config = self.get_state()
@@ -355,9 +356,39 @@ class SushiConfigDialog(QDialog):
                 'providers_file': 'providers.tsv',
                 'save_empty_report': False,
                 'always_include_header_metric_types': True,
-                'default_begin': '2025-01'
+                'default_begin': f"{datetime.now().year}-01"  # ← Dynamic
             }
 
+    def _browse_file(self, field_name: str):
+        """Open file browser for selecting files."""
+        from PyQt6.QtWidgets import QFileDialog
+
+        # Get current value as starting directory
+        current_value = self.fields[field_name].text()
+        start_dir = ""
+
+        if current_value:
+            from pathlib import Path
+            path = Path(current_value)
+            if path.exists():
+                start_dir = str(path.parent)
+            else:
+                start_dir = str(Path.cwd())
+        else:
+            from pathlib import Path
+            start_dir = str(Path.cwd())
+
+        # Show file dialog
+        filename, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select Providers File",
+            start_dir,
+            "TSV Files (*.tsv);;All Files (*.*)"
+        )
+
+        if filename:
+            # Update field with selected filename
+            self.fields[field_name].setText(filename)
     def _handle_close(self):
         """Handle close button click."""
 
