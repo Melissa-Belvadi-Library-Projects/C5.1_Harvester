@@ -259,6 +259,11 @@ def timedelay(provider_name,thisdelay):
         log_error(f"ERROR: 'Delay' for {provider_name} is unexpected, using 2 seconds; value: {thisdelay} -> {type(thisdelay)}")
     return delaylength
 
+def make_report_id_uppercase(report_json):
+    for report in report_json:
+        if "Report_ID" in report:
+            report["Report_ID"] = report["Report_ID"].upper()
+    return report_json
 
 def fetch_json(providers, begin_date, end_date, report_type_list):
     """
@@ -372,6 +377,7 @@ def fetch_json(providers, begin_date, end_date, report_type_list):
             ### *** Here is the actual call to get the report of supported reports #####
             log_error(f'INFO: {provider_name}: supported reports API URL=\n{report_json_url}')
             report_json = get_json_data(report_json_url, provider_info)
+            make_report_id_uppercase(report_json) # some providers are sending the report_ids as lower case but we need them upper to compare to "list"
             if not report_json:
                 log_error(f'ERROR: get_json_data failed for this url, {report_json_url}, skipping provider\n')
                 continue
