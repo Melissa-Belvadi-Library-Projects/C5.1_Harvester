@@ -135,7 +135,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
             return results
 
         # Fetch provider API information
-        providers_dict = fetch_json(providers, begin_date, end_date, selected_reports)
+        providers_dict = fetch_json(providers, begin_date, end_date, selected_reports, is_cancelled_callback)
 
         if not providers_dict:
             error_msg = "Failed to fetch provider information from API"

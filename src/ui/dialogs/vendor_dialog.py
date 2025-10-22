@@ -190,7 +190,7 @@ class VendorManagementDialog(QDialog):
 
     def get_state(self) -> Dict[str, Any]:
         """
-        Get current state as a  dictionary.
+        Get current state as a dictionary.
 
         Returns:
             Dict with 'vendors' key containing list of vendor dictionaries

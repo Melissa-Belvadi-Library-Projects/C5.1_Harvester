@@ -14,6 +14,7 @@ from tsv_utils import default_metric_types, official_reports #default metric typ
 #from requests.exceptions import SSLError
 #from urllib3.exceptions import SSLCertVerificationError
 
+
 ''' Example of custom report for later development:
  {
     "Report_Name": "sciencedirect:Total Item Requests by Platform",
@@ -265,7 +266,7 @@ def make_report_id_uppercase(report_json):
             report["Report_ID"] = report["Report_ID"].upper()
     return report_json
 
-def fetch_json(providers, begin_date, end_date, report_type_list):
+def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_callback=None):
     """
     Fetch provider API information with given parameters.
 
@@ -286,6 +287,11 @@ def fetch_json(providers, begin_date, end_date, report_type_list):
         return None
 
     for provider in providers:
+        #print(f"{is_cancelled_callback()} : {provider.get('Name')}")
+
+        if is_cancelled_callback():
+             break
+
         provider_info = {}
         checked_date = 0
         get_report_url_credentials = ''
@@ -477,7 +483,7 @@ def fetch_json(providers, begin_date, end_date, report_type_list):
                             ErrorText += f'; Data: {ExceptionData}'
                         if ExceptionHelp_URL := report_json.get("Help_URL", None):
                             ErrorText += f'; Help_URL: {ExceptionHelp_URL}'
-                        log_error(f'{ErrorText}\n')
+                        log_error(f' this is a test {ErrorText}\n')
                 continue
         # these are all raised from get_json_data
         except requests.exceptions.HTTPError as http_err:

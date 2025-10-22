@@ -2,6 +2,7 @@
 
 import sys
 import uuid
+import random
 from pathlib import Path
 from typing import Optional
 from PyQt6.QtWidgets import (
@@ -27,7 +28,7 @@ from help_file import get_help_url
 from PyQt6.QtWidgets import QMessageBox
 from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtCore import QUrl
-
+from dataclasses import dataclass
 
 
 class SushiHarvesterGUI(QMainWindow):
@@ -57,7 +58,7 @@ class SushiHarvesterGUI(QMainWindow):
         self.vendor_repo = VendorRepository(signals=self.signals)  #  Pass signals
 
         # Connect error handler
-        self.signals.errorOccurred.connect(self._on_error)  # ← Your connection
+        self.signals.errorOccurred.connect(self._on_error)  #  connection
 
         # Load initial state
         self._load_initial_state()
@@ -119,7 +120,7 @@ class SushiHarvesterGUI(QMainWindow):
                     vendor['Id'] = str(uuid.uuid4())
                 except Exception as e:
                     # Fallback if UUID generation fails
-                    import random
+
                     vendor['Id'] = f"vendor_{random.randint(100000, 999999)}"
                     print(f"Warning: UUID generation failed, using fallback ID: {e}")
 
@@ -170,7 +171,7 @@ class SushiHarvesterGUI(QMainWindow):
 
         main_layout.addLayout(date_layout)
 
-        # === Report Types + Providers Section ===
+        #Report Types + Providers Section ===
         selection_layout = QHBoxLayout()
 
         # Available report types
@@ -433,10 +434,7 @@ class SushiHarvesterGUI(QMainWindow):
             #     print(f"  {key}: {value}")
             # print("=" * 80 + "\n")
 
-
         # Create harvester config
-        from dataclasses import dataclass
-
         @dataclass
         class HarvesterConfig:
             start_date: str
@@ -521,6 +519,7 @@ class SushiHarvesterGUI(QMainWindow):
     def _handle_exit(self):
         """Handle application exit."""
         self.close()
+
 
 
 if __name__ == "__main__":

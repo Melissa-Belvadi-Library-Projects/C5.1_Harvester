@@ -13,9 +13,10 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPalette, QColor
 from datetime import datetime
 from help_file import get_help_url
-
+from PyQt6.QtWidgets import QFileDialog
 
 class SushiConfigDialog(QDialog):
+
     """
     Settings dialog with state-based approach.
     Emits signals instead of directly saving to files.
@@ -361,7 +362,6 @@ class SushiConfigDialog(QDialog):
 
     def _browse_file(self, field_name: str):
         """Open file browser for selecting files."""
-        from PyQt6.QtWidgets import QFileDialog
 
         # Get current value as starting directory
         current_value = self.fields[field_name].text()

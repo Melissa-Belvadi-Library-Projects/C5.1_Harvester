@@ -44,8 +44,8 @@ class HarvesterThread(QThread):
         self.vendors = vendors
         self.reports = reports
         self.config_dict = config_dict #storing dict
-        self._is_cancelled = False
-        self._has_started_processing = False # for if the user stops before any report ws retrieved
+        self._is_cancelled = False # button remains false until user clicks it .turns into tue
+        self._has_started_processing = False # for if the user stops before any report ws retrieved, tracking the retrieving report message...
 
     def run(self):
         """Execute harvester in background thread."""
@@ -64,8 +64,9 @@ class HarvesterThread(QThread):
                 selected_vendors=self.vendors,
                 selected_reports=self.reports,
                 config_dict=self.config_dict,
-                progress_callback=self._handle_progress,
-                is_cancelled_callback=lambda: self._is_cancelled #pass the cancel function through here
+                progress_callback=self._handle_progress, #Send log messages from backend to UI
+                is_cancelled_callback=lambda: self._is_cancelled #pass the cancel function through here ,lambda creates a function that returns the current  value
+            # almost like we store the logic for getting the most recent result
             )
 
             # Emit results
@@ -94,6 +95,7 @@ class HarvesterThread(QThread):
         # Detects when we start processing reports
         if "Retrieving reports:" in message or "Retrieving report:" in message:
             self._has_started_processing = True
+        #sends to ui
         self.log_signal.emit(message)
 
 
@@ -211,9 +213,9 @@ class ProgressDialog(QDialog):
             self.stop_button.setEnabled(False)
             self.stop_button.setText("Stopping...")
 
-            # Wait for thread to finish (with timeout)
-            if not self.harvester_thread.wait(5000):  # 5 second timeout
-                self.log_text.append("Please wait a moment.")
+            # # Wait for thread to finish (with timeout)
+            # if not self.harvester_thread.wait(5000):  # 5 second timeout
+            #     self.log_text.append("Please wait a moment.")
 
             self.stop_button.setText("Stop")
 
