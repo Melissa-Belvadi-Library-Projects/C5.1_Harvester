@@ -148,7 +148,7 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info,config
         report_items = counter_data.get("Report_Items", None)
         if not report_items and not save_empty_report:
             print(f"No report items in {json_file_path}.\nReason: {report_header.get('Exceptions',[])[0].get('Message', '')}\n")
-            log_error(f'ERROR: No report items in {json_file_path}. Exceptions: {report_header.get('Exceptions',[])}')
+            log_error(f"ERROR: No report items in {json_file_path}. Exceptions: {report_header.get('Exceptions',[])}")
             return 0
         # Ensure tsv_dir is a string
         if not isinstance(tsv_dir, str):
