@@ -232,6 +232,7 @@ def get_json_data(url, provider_info):
 
         #out of the while loop without a return -1 interrupting it
         report_json = response.json()
+        #print(f'2: report_json: {report_json}\nreport_json is class: {type(report_json)}\n')
         # Handle brotli encoding if present
         if response.headers.get('Content-Encoding') == 'br':
             decoded_content = brotli.decompress(response.content)
@@ -240,6 +241,7 @@ def get_json_data(url, provider_info):
             log_error(f"ERROR: Failed to get a valid response after 3 attempts, url={url}")
             return -1
 
+        #print(f'DEBUG3: report_json: {report_json}\nreport_json is class: {type(report_json)}\n')
         return report_json
 
     except Exception as e2:
@@ -271,10 +273,10 @@ def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_c
     Fetch provider API information with given parameters.
 
     Args:
-        providers: List of provider dictionaries
+        providers: List of provider dictionaries from load_providers
         begin_date: Start date in YYYY-MM format
         end_date: End date in YYYY-MM format
-        report_type_list: List of report types like ['DR', 'TR', 'PR', 'IR']
+        report_type_list: List of report types selected by the user in the GUI
 
     Returns:
         Dictionary of provider data or None on failure
@@ -288,7 +290,6 @@ def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_c
 
     for provider in providers:
         #print(f"{is_cancelled_callback()} : {provider.get('Name')}")
-
         if is_cancelled_callback():
              break
 
@@ -383,19 +384,23 @@ def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_c
             ### *** Here is the actual call to get the report of supported reports #####
             log_error(f'INFO: {provider_name}: supported reports API URL=\n{report_json_url}')
             report_json = get_json_data(report_json_url, provider_info)
+            ### get_json_data returns a list of dicts if successful  or an integer if unsuccessful
+            #print(f'DEBUG: report_json: {report_json}\nreport_json is class: {type(report_json)}\n')
             make_report_id_uppercase(report_json) # some providers are sending the report_ids as lower case but we need them upper to compare to "list"
-            if not report_json:
-                log_error(f'ERROR: get_json_data failed for this url, {report_json_url}, skipping provider\n')
+            if not report_json or isinstance(report_json, int):
+                log_error(f'ERROR: did not get valid json response for this url, {report_json_url}, skipping provider\n')
                 continue
-            elif report_json == -1:
-                log_error(
-                    f'ERROR: get_json_data failed fatally not specific to this url,{report_json_url}, which means skip this entire provider\n')
-                continue  # try the next provider
 
             # Now we can process the list of reports
             # Loop through the list of reports supported as returned by get_json_data to create all URLs for supported reports
             #  Need to figure out where custom reports will fit into this           if is_custom_report(provider_info, report_type)
             if isinstance(report_json, list):  # this must be the supported_reports api response
+                # first check if ANY of the supported reports are among the ones the user selected in the GUI
+                report_ids_in_json = {report.get('Report_ID') for report in report_json if 'Report_ID' in report}
+                if report_ids_in_json.isdisjoint(report_type_list):
+                    # If there's no overlap, log it (optional) and skip this whole provider.
+                    log_error(f"WARNING: Skipping provider {provider_name} as none of its available reports were selected by the user.")
+                    continue  # This 'continue' applies to the OUTER loop
                 for report in report_json:
                     if "Report_ID" not in report:
                         log_error(f"ERROR: No_report_id: a report from {provider_name} does not contain Report_ID\n")
@@ -473,7 +478,7 @@ def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_c
                 data_dict[provider_name] = provider_info  # Add provider_info dict  directly to the data_dict
             else:
                 log_error(
-                    f'ERROR_INFO: The response to the url {report_json_url} is not the expected supported reports list\n')
+                    f'ERROR_INFO: The API response to the url {report_json_url} is not a proper json list\n')
                 if isinstance(report_json, dict):
                     if ExceptionCode := report_json.get("Code", None):
                         ErrorText = f'ERROR: A COUNTER Exception code was provided: {ExceptionCode}'

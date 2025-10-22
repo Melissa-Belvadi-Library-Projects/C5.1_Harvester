@@ -40,17 +40,26 @@ def clean_string(text):   # Replace any double commas with a single comma and Re
         text = text[:-1]
     return text
 
-def clean_text(text): # """Convert UTF-8 escape sequences and remove HTML tags."""
+def clean_text(text):
+    """Decode unicode escape sequences and remove HTML tags from a string."""
     if not text:
         return text
+
+    # The 'unicode_escape' codec is designed specifically for this.
+    # It finds sequences like \u00e9 and converts them to the actual character.
+    # We wrap this in a try/except because it can fail on malformed sequences.
     try:
-        # Handle UTF-8 escape sequences
         if '\\u' in text:
-            text = json.loads(f'"{text.replace("`", "\\`").replace("\"", "\\\"")}"')
-    except:
-        pass  # Keep original if json.loads fails
-    # Remove HTML tags
+            # First, encode to latin-1 to preserve existing bytes, then decode with unicode_escape.
+            text = text.encode('latin-1', 'backslashreplace').decode('unicode_escape')
+    except Exception:
+        # If decoding fails, it's safer to leave the original text as is
+        # rather than having the function crash.
+        pass
+
+    # --- HTML tag removal
     text = re.sub(r'<[^>]+>', '', text)
+
     return text
 
 

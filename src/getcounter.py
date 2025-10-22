@@ -117,6 +117,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
         def general_callback(msg):
             log(f"{msg}")
 
+        # Create providers dict with the data from the providers tsv file except the ones not selected by the user in the GUI
         providers = load_providers(
             str(providers_file_path),
             user_selections,
@@ -134,7 +135,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
         if is_cancelled():
             return results
 
-        # Fetch provider API information
+        # Fetch provider API information -start and end dates, filtered to only report types selected by user in the GUI
         providers_dict = fetch_json(providers, begin_date, end_date, selected_reports, is_cancelled_callback)
 
         if not providers_dict:
