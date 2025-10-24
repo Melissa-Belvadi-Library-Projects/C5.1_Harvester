@@ -8,7 +8,7 @@ This document explains the structure of the sqlite database and how to use it. E
   - There is no server involved; for Windows users it's very much like a Microsoft Access database, and can be opened using MS Access too.
 - It resides in the main folder for the harvester.
 - All of its data comes from the EX versions of the 4 reports - PR, DR, TR, and IR, but the Report_Type column uses the two-letter Report_Type.
-- There is just one table, usage_data. To see how usage_data is defined, look at create_tables.py.
+- There are 4 tables, named for each of the 4 main reports as above. To see how they are defined, look at data_columns.py and create_tables.py.
 
 ## Using the database
 
@@ -23,7 +23,7 @@ But there are better options using graphical interfaces:
 -  If you have Microsoft Access, you can open an sqlite database with that and use whatever method you prefer to create queries.  There are lots of videos and web pages about how to do that.
 - We recommend a free program that is available on Windows, Mac, and Linux called dbeaver: (https://dbeaver.io/). There is a free version that works just fine for this purpose.
 
-The usage_data table is set up to only store 1 row per unique combination of the settings, using a hash text that also handles null values.
+The tables are set up to only store 1 row per unique combination of the settings, using a hash text that also handles null values.
 
 If you download the "same" specific data point (same metric type, provider, month-year, title/database/platform etc.) more than once, it will overwrite ("replace") rather than add. That way, you'll always have the most recently available metrics, and only one copy of it, as you may download some data over and over, as would happen if you run a "year to date" type of report every month. 
 

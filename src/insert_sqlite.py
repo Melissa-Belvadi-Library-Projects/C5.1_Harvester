@@ -1,9 +1,7 @@
 import sqlite3
 import hashlib
 from logger import log_error
-#from current_config import data_table
-# Removed - will be passed as parameter
-from data_columns import data_columns
+
 
 def normalize_column_names(data_dict):
     """Normalize inconsistent column names in a single row dictionary."""
@@ -40,25 +38,11 @@ def generate_unique_hash(data_dict, data_columns):
     hash_input = "||".join(values)
     return hashlib.md5(hash_input.encode('utf-8')).hexdigest()
 
-def insert_sqlite(data_dict, report_id, cursor, conn ,config):
+def insert_sqlite(data_dict, report_id, cursor, conn ,config, data_columns):
     #Insert or update data into SQLite.
     #pass config so insert_sqlite can access data_table
     try:
-
-        # Extract data_table from config instead of using cached import.
-        data_table = config['data_table'] #New - Daniel
-
-
-        table_name = data_table
-        # Build the SELECT query to fetch the entire row for comparison
-        #Using hash column to make sure no duplicate rows in table for "insert or replace"
-        '''Statistics on MD5 Collision Risk:
-        MD5 produces a 128-bit hash value (2^128 possible values, or about 3.4 × 10^38)
-        For collision probability to reach 50%, you'd need approximately 2^64 records (18.4 quintillion)
-        With 10 million rows, the collision probability is around 10^-23 (effectively zero)
-        Even with 1 billion rows, probability remains astronomically small at about 10^-19
-        '''
-
+        table_name = report_id[:2]
         data_dict["Row_Hash"] = generate_unique_hash(data_dict, data_columns)
 
        # Retrieve column names from the table to ensure proper alignment

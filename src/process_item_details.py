@@ -8,7 +8,7 @@ import json
 import datetime
 import sqlite3
 import csv
-from data_columns import data_columns  # Assuming this contains your SQLite table column names
+import data_columns
 from logger import log_error
 from fetch_json import get_json_data  # generic routine to get json report with various error handling, headers, content encoding, etc.
 from insert_sqlite import insert_sqlite
@@ -92,8 +92,8 @@ def publisher_id_string(publisher_id_data):
     publisher_id = "; ".join(publisher_id_list)
     return publisher_id
 
-# Note distinction between report_id which includes my EX pretend standard views and report_type
-### which comes directly from the actual report header and for the EX ones, will be the 2-letter master report
+# Note distinction between report_id which includes my _EX  and report_type
+### which comes directly from the actual report header
 def save_json(report_json, report_id, provider_info, json_folder, save_empty=False, report_items=None):
     #Removed the default parameter that uses imported json_dir, will pass explicitly
     vendor = provider_info.get('Name', '').replace(' ','_')
@@ -104,12 +104,12 @@ def save_json(report_json, report_id, provider_info, json_folder, save_empty=Fal
         os.makedirs(subfolder)
     report_header = report_json.get("Report_Header", {})
     if not report_header:
-        log_error(f'ERROR: the report header is missing, unable to save a report for {vendor}')
+        log_error(f'ERROR: the report header is missing, unable to save {report_id[:2]} for {vendor}')
         return -1
     report_type = report_header.get("Report_ID","")
     exceptions = report_header.get("Exceptions","")
     api_platform = provider_info.get("Platform","")
-    if exceptions:
+    if exceptions and exceptions[0].get("Code") != 3030:
         log_error(f'ERROR: Exceptions reported for {vendor}: {report_type}')
     date_range = provider_info.get("Dates","")
     created_date = f"{datetime.datetime.now():%Y_%m_%d}"
@@ -125,7 +125,7 @@ def save_json(report_json, report_id, provider_info, json_folder, save_empty=Fal
         if len(exceptions) == 1 and exceptions[0].get("Code") == 3030:  # Don't bother user to print if just some vendors don't have data available for those dates
             log_error(f'Warning:  Date range exception: {exceptions}')
         else:
-            print(f'ERROR: Exception for {json_filename}; see error log for details')
+            print(f'ERROR: Exception for {json_filename}; see info log for details')
             log_error(f'ERROR: Exception given for {json_filename}; {exceptions}\nThe report may still have been saved and added to the database, but may not have the data you wanted')
     full_file_path = os.path.join(subfolder, json_filename)
     # Need to write everything except our custom Provider_Name that we need to use in the sqlite database
@@ -224,14 +224,16 @@ def process_item_details(provider_info,report_type,get_report_url,config):
     provider_name = provider_info.get('Name')
 
     if not all((provider_info,report_type,get_report_url)):
-        log_error(f"ERROR:  missing one or more of the function parameters\n")
+        log_error(f"ERROR: missing one or more of the parameters for process_item_details\n")
         return -1
     try:
         ################# This uses get_json_data in fetch_json.py to actually get the specific report
+
         report_data = get_json_data(get_report_url,provider_info)
+
         #log_error(f'DEBUG PID: Does the report data contain the Report Header?\n{report_data}\n')
         if (not report_data) or (isinstance(report_data, int)) or (not isinstance(report_data, dict)): # an int response is an error
-            log_error(f"ERROR: Processing {provider_name}:{report_type.upper()}: unable to get report {report_type.upper()}\n")
+            log_error(f"ERROR: Processing {provider_name}:{report_type.upper()}: unable to get report using {get_report_url}\n")
             return -1
     except Exception as e:
         log_error(f"ERROR: Processing {provider_name}:{report_type.upper()}: Error occurred for {get_report_url}: \n{e} type: {type(e).__name__}\n")
@@ -240,42 +242,54 @@ def process_item_details(provider_info,report_type,get_report_url,config):
     try:
         report_header = report_data.get("Report_Header", {})
         if not report_header:
-            log_error(f"ERROR: Processing {provider_name}:{report_type.upper()}: Error: Got json data but no Report_Header for {report_type.upper()}\n")
+            log_error(f"ERROR: Processing {provider_name}:{report_type.upper()}: Got response but no Report_Header\n")
             return -1
 
     except Exception as e:
-        log_error(f"ERROR: Processing {provider_name}:{report_type.upper()}: Error: Got json data but no Report_Header for {report_type.upper()}\n: {e} type: {type(e).__name__}\n")
+        log_error(f"ERROR: Processing {provider_name}:{report_type.upper()}: Got response but no Report_Header : {e} type: {type(e).__name__}\n")
         return -1
+    # Some providers fail to include a full report header but send just an exception error - this is not valid but we have to deal with it
+    try:
+        report_id = report_data.get("Report_Header", {}).get("Report_ID", None)
+        if not report_id:
+            log_error(f"ERROR: Processing {provider_name}:{report_type.upper()}: Got response but the Report_Header is missing required data; see infolog for detail\n")
+            log_error(f"ERROR-detail: This is the full json response:\n{report_data}\n")
+            return -1
 
+    except Exception as e:
+        log_error(f"ERROR: Processing {provider_name}:{report_type.upper()}: Got response but no Report_Header: {e} type: {type(e).__name__}\n")
+        return -1
     report_header["Provider_Name"] = provider_info.get('Name') # this doesn't really come from the json report header but we need it in sqlite
     if not report_header["Provider_Name"]:
-        log_error(f"ERROR: Processing {provider_name}:{report_type.upper()}: Error: Got Report Header but no Name for {report_type.upper()}\n")
+        log_error(f"ERROR: Processing {provider_name}:{report_type.upper()}: Got Report Header but no Provider Name\n")
         return -1
 
     try:
         report_items = report_data.get("Report_Items", [])
         if not report_items:
-            log_error(f"Warning: Processing {provider_name}:{report_type.upper()}: Error Got json data but no Report_Items for:{report_type.upper()}")
+            log_error(f"Warning: Processing {provider_name}:{report_type.upper()}: Got Report Header but no usage table")
             if save_empty_report:
-                log_error(f'      Since you chose in sushiconfig.py to save empty reports,\n     you will find the tsv for {provider_name}:{report_type.upper()} with header and exceptions but no table.')
+                log_error(f'  Saving empty reports: tsv with header and exceptions but no usage table.')
             if not save_empty_report:  # user configures whether they want to save a report with just the header so they have a record of trying and not having data for that report/period
                 return -1
         #metric_types = extract_metric_types(report_items)
     except Exception as e:
-        log_error(f"Warning: Processing {provider_name}:{report_type.upper()}: Error Got json data but no Report_Items for:\n{report_type.upper()}\n:   {e} type: {type(e).__name__}")
+        log_error(f"Warning: Processing {provider_name}:{report_type.upper()}: Got Report Header but no usage table:   {e} type: {type(e).__name__}")
         if save_empty_report:
-            log_error(f'          Since you chose in sushiconfig.py to save empty reports,you will find the tsv for {provider_name}:{report_type.upper()} with header and exceptions but no table.')
+            log_error(f'  Saving empty reports: tsv with header and exceptions but no usage table.')
         return -1
     ########### Step 1 - Save the json to a file
-    #save the entire json to a file in folder specified in sushiconfig
+    #save the entire json to a file in folder specified in user config
+    #log_error(f'DEBUG GALE IR_A1: {report_data},\n {report_type},\n {provider_info},\n {json_dir},\n {save_empty_report},\n {report_items}\n')
     json_saved_filename = save_json(report_data, report_type, provider_info, json_dir, save_empty_report, report_items)
     if not json_saved_filename or not isinstance(json_saved_filename, str):
-        print(f'Unable to save json for {provider_name}:{report_type.upper()}, key data is missing, skipping this report')
-        log_error(f'ERROR: Unable to save json for {provider_info} {report_type.upper()};\nreport_data={report_data}\n')
+        log_error(f'ERROR-detail: Unable to save json, skipping this report for {provider_info} {report_type.upper()};report_data=\n{report_data}\n\n')
+        log_error(f'ERROR: Unable to save json for {provider_info} {report_type.upper()}; see infolog for details\n')
         return -1
 
+    ##### Step 2 - create the tsv file - the official COUNTER report
     tsv_saved_file = convert_counter_json_to_tsv(report_type.upper(),json_saved_filename, provider_info,config)
-    # added config parameter so that it cn pass config to the next function in the chain so it can access tsv_dir.-Daniel
+    # added config parameter to pass to the next function in the chain so it can access tsv_dir.-Daniel
 
     if not tsv_saved_file:
         print(f'Unable to save tsv for: {provider_name}: {report_type.upper()}; see {error_log_file} for details\n')
@@ -305,6 +319,14 @@ def process_item_details(provider_info,report_type,get_report_url,config):
     ### Here is where we need to use the EX reports instead of the original master report- for the database
 
     #Use the tsv file to make the sqlite database rows
+    # Get the correct list of columns for this report type
+    all_data_columns = {
+    'TR': data_columns.data_columns_TR,
+    'PR': data_columns.data_columns_PR,
+    'IR': data_columns.data_columns_IR,
+    'DR': data_columns.data_columns_DR
+    }
+
     try:
         if tsv_saved_file.endswith('empty.tsv'):
             log_error(f'INFO: {provider_name}:{report_type} is empty, nothing to save to sqlite database.')
@@ -324,8 +346,8 @@ def process_item_details(provider_info,report_type,get_report_url,config):
 
     for row in rows:
         try:
-            ####### The actual insert per each row of usage data
-            insert_sqlite(row,report_type,cursor,conn,config) # Added config- Daniel
+            ####### The actual insert per each row of usage data, note that at this point, report type includes the _EX
+            insert_sqlite(row,report_type,cursor,conn,config,all_data_columns[report_type[:2]]) # Added config- Daniel
             # pass config dict so insert_sqlite can access data_table -Daniel
         except sqlite3.OperationalError as e:
             # Handle operational errors (e.g., unable to connect, missing table, etc.)

@@ -5,8 +5,7 @@ While you can change whatever you like in your own copy of the source code, a fe
 Those options are, with their default settings:
 
 - **sqlite_filename** = 'counterdata.db'
-- **data_table** = 'usage_data'
-- **info_log_file** = 'info_log.txt'
+- **info_log_file** = 'infolog.txt'
 - **json_dir** = 'json_folder'
 - **tsv_dir** = 'tsv_folder'
 - **providers_file** = 'providers.tsv'
@@ -20,8 +19,6 @@ We recommend that you do not change any of the file or folder names unless you h
 
 Do ***not*** try to completely change the path outside of the main program folder where the harvester python code is saved. The 
 harvester will expect those to be subfolders directly below the folder where the python code is saved..
-
-The name of "data_table" is just the actual table name in the sqlite database.
 
 ## "always_include_header_metric_types"
 

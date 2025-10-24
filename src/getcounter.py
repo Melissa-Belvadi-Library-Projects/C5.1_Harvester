@@ -150,7 +150,8 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
         # Initialize database
         conn = sqlite3.connect(sqlite_filename)
         cursor = conn.cursor()
-        create_data_table(cursor, data_table)  # Pass data_table from config-Daniel
+        create_data_table(cursor)
+        #create_data_table(cursor, data_table)  # Pass data_table from config-Daniel
         conn.commit()
         conn.close()
 
@@ -161,22 +162,16 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
         for provider_name, provider_info in providers_dict.items():
             if is_cancelled(): #Check #1, before starting a provider
                 break
-
+            current_timestamp = datetime.now()
+            formatted_time = current_timestamp.strftime("%M:%S")
             report_urls = provider_info.get('Report_URLS', {})
-            #log_error(f'DEBUG gc: report list for {provider_name}: {report_urls}\n')
+            log_error(f"\nINFO: {formatted_time}: {provider_name}\n")
             log(f"Retrieving reports: {provider_name}") # do this line for pause..instead of retrieve ..use completed
 
             for report_id, report_url in report_urls.items():
-
-                log_error(f"INFO: Retrieving report: {provider_name}: {report_id.upper()}: {report_url}")
-                current_timestamp = datetime.now()
-                formatted_time = current_timestamp.strftime("%M:%S")
-                #log_error(f"DEBUG gc: Retrieving report at:{formatted_time} : {provider_name}: {report_id.upper()}: {report_url}")
-
+                log_error(f"INFO: Retrieving : {provider_name}: {report_id.upper()}: {report_url}")
                 try:
-                    process_item_details(provider_info, report_id, report_url,config)
-                    #Pass config dict-Daniel
-
+                    process_item_details(provider_info, report_id, report_url,config) #Pass config dict-Daniel
                     if is_cancelled():
                         log(f"Completed {provider_name}: {report_id.upper()}")
                         break

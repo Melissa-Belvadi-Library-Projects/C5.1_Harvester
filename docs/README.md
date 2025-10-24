@@ -3,7 +3,7 @@
 Here is a quick intro to some of the jargon involved. This is intended for librarians, so don't be intimidated!
 
 # What is COUNTER 5.1?
-An international organization called [COUNTER Metrics](https://www.countermetrics.org/) provides an industry-wide standard (common set of rules) for counting usage on the electronic books, journals, databases, etc. industry that licenses such resources to libraries.  Those rules define specific ways to count how our patrons use those resources, and they tell the publisher/content provider how they should report that data.
+An international organization called [COUNTER Metrics](https://www.countermetrics.org/) provides an industry-wide standard (common set of rules) for counting usage on the electronic books, journals, databases, etc. companies that license such resources to libraries.  Those rules define specific ways to count how our patrons use those resources, and they tell the publisher/content provider how they should report that data.
 
 The COUNTER Code of Practice ("COP") 5.1 is the latest version of those rules. It became required for content providers that claim to its customers to be "COUNTER-compliant" in January 2025.
 There is no law forcing providers to follow COUNTER rules, and some don't, especially smaller ones with very specialized kinds of content that don't fit well with COUNTER rules. But all of the major academic publishers and aggregator platforms (EBSCO, Proquest, Gale, JSTOR, etc.) do offer COUNTER-compliant reports. Everyone following the same rules allows librarians to compare usage across different providers. COP 5.1 provides specific definitions for 16 different kinds of [reports](https://www.countermetrics.org/education/reports/). 

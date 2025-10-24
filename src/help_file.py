@@ -2,9 +2,9 @@
 
 # Help documentation URLs
 HELP_URLS = {
-    'main': 'https://github.com/Melissa-Belvadi-Library-Projects/C5.1_Harvester',
-    'settings': 'https://github.com/Melissa-Belvadi-Library-Projects/C5.1_Harvester',
-    'providers': 'https://github.com/Melissa-Belvadi-Library-Projects/C5.1_Harvester',
+    'main': 'https://github.com/Melissa-Belvadi-Library-Projects/C5.1_Harvester/blob/devbranch/docs/contents.md',
+    'settings': 'https://github.com/Melissa-Belvadi-Library-Projects/C5.1_Harvester/blob/devbranch/docs/config-options.md',
+    'providers': 'https://github.com/Melissa-Belvadi-Library-Projects/C5.1_Harvester/blob/devbranch/docs/template_providers.md',
 }
 
 
