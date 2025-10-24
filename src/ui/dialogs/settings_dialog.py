@@ -31,9 +31,7 @@ class SushiConfigDialog(QDialog):
         super().__init__(parent)
 
         self.setWindowTitle("Settings")
-        self.setFixedSize(500, 450)
-
-
+        self.setFixedSize(450, 380)
 
         # State management
         #state = the current values of the UI and the data it represents.
@@ -68,13 +66,6 @@ class SushiConfigDialog(QDialog):
         self.fields['sqlite_filename'].setFixedWidth(170)
         fields_layout.addWidget(self.fields['sqlite_filename'], row, 1)
 
-        # Data Table Name
-        row += 1
-        fields_layout.addWidget(QLabel("Data Table Name:"), row, 0,
-                                Qt.AlignmentFlag.AlignRight)
-        self.fields['data_table'] = QLineEdit()
-        self.fields['data_table'].setFixedWidth(170)
-        fields_layout.addWidget(self.fields['data_table'], row, 1)
 
         # Error Log File
         row += 1
@@ -107,6 +98,9 @@ class SushiConfigDialog(QDialog):
 
         # Container for text field + browse button
         providers_layout = QHBoxLayout()
+        providers_layout.setSpacing(5)  # Tight spacing between widgets
+        providers_layout.setContentsMargins(0, 0, 0, 0)  # No margins
+
         self.fields['providers_file'] = QLineEdit()
         self.fields['providers_file'].setFixedWidth(170)
         providers_layout.addWidget(self.fields['providers_file'])
@@ -115,10 +109,11 @@ class SushiConfigDialog(QDialog):
         browse_providers_btn.setFixedWidth(100)
         browse_providers_btn.clicked.connect(lambda: self._browse_file('providers_file'))
         providers_layout.addWidget(browse_providers_btn)
-        providers_layout.addStretch()
+
 
         providers_widget = QWidget()
         providers_widget.setLayout(providers_layout)
+        providers_widget.setMaximumHeight(30)
         fields_layout.addWidget(providers_widget, row, 1)
 
         # Save Empty Reports checkbox
@@ -153,6 +148,8 @@ class SushiConfigDialog(QDialog):
 
         # Container for date widgets
         date_layout = QHBoxLayout()
+        date_layout.setSpacing(1)  # Tight spacing
+        date_layout.setContentsMargins(0, 0, 0, 0)
         date_layout.addWidget(self.month_combo)
         date_layout.addWidget(self.year_spin)
         date_widget = QWidget()
@@ -218,7 +215,6 @@ class SushiConfigDialog(QDialog):
 
         return {
             'sqlite_filename': self.fields['sqlite_filename'].text(),
-            'data_table': self.fields['data_table'].text(),
             'error_log_file': self.fields['error_log_file'].text(),
             'json_dir': self.fields['json_dir'].text(),
             'tsv_dir': self.fields['tsv_dir'].text(),
@@ -241,7 +237,7 @@ class SushiConfigDialog(QDialog):
 
         try:
             # Update text fields
-            for key in ['sqlite_filename', 'data_table', 'error_log_file',
+            for key in ['sqlite_filename', 'error_log_file',
                         'json_dir', 'tsv_dir', 'providers_file']:
                 if key in state and key in self.fields:
                     self.fields[key].setText(str(state[key]))
@@ -278,7 +274,7 @@ class SushiConfigDialog(QDialog):
         has_changes = current_state != self._original_state # notices if there are some changes  with the intial state
 
         #enables  that the user cannot save an empty field
-        required = ["sqlite_filename", "data_table", "providers_file","error_log_file", "json_dir", "tsv_dir"]
+        required = ["sqlite_filename", "providers_file","error_log_file", "json_dir", "tsv_dir"]
         all_filled = all(current_state[field].strip() for field in required)
 
 
@@ -350,7 +346,6 @@ class SushiConfigDialog(QDialog):
             print(f"Warning: Using hardcoded defaults: {e}")
             return {
                 'sqlite_filename': 'counterdata.db',
-                'data_table': 'usage_data',
                 'error_log_file': 'infolog.txt',
                 'json_dir': 'json_folder',
                 'tsv_dir': 'tsv_folder',
@@ -394,14 +389,13 @@ class SushiConfigDialog(QDialog):
 
         FIELD_LABELS = {
             "sqlite_filename": "SQLite Database File",
-            "data_table": "Data Table Name",
             "error_log_file": "Info Log File",
             "json_dir": "JSON Directory",
             "tsv_dir": "TSV Directory",
             "providers_file": "Providers File"
         }
 
-        required = ["sqlite_filename", "data_table", "providers_file", "error_log_file", "json_dir", "tsv_dir"]
+        required = ["sqlite_filename", "providers_file", "error_log_file", "json_dir", "tsv_dir"]
 
         current_state = self.get_state()
         empty_fields = [field for field in required if not current_state[field].strip()]
