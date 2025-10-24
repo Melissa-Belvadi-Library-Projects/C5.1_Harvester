@@ -68,7 +68,7 @@ class ConfigRepository:
             if self.signals:
                 # The  if self.signals: check is basically saying:
                 # Before I  try to use signals, let me make sure they actually exist..
-                # If they don't, I'll just skip this part instead of crashing... seems highly unlikely but convering any edge casesg
+                # If they don't, I'll just skip this part instead of crashing... seems highly unlikely but convering any edge cases
                 self.signals.errorOccurred.emit(
                     f"Could not load configuration: {e}\n\n"
                     "Please make sure the file exists and is in the right folder"
@@ -84,7 +84,6 @@ class ConfigRepository:
             content = """#####  Various constant values that you can change as you like
 
 sqlite_filename = '{sqlite_filename}'
-data_table = '{data_table}'
 error_log_file = '{error_log_file}'
 json_dir = '{json_dir}'
 tsv_dir = '{tsv_dir}'
@@ -173,7 +172,6 @@ default_begin = '{default_begin}'
         # Fallback: hardcoded defaults (last resort)
         return {
             'sqlite_filename': 'counterdata.db',
-            'data_table': 'usage_data',
             'error_log_file': 'infolog.txt',
             'json_dir': 'json_folder',
             'tsv_dir': 'tsv_folder',
