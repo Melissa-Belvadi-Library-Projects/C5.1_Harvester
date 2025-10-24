@@ -142,7 +142,10 @@ def get_json_data(url, provider_info):
                     break
                 elif response.status_code == 202:
                     http_desc = (f"Request is queued - try again later:{url}\n {response.text}")
-                    log_error(f'{http_desc}\n')
+                    #log_error(f'{http_desc}\n')
+                    if attempts > 2:
+                        log_error(f'ERROR: Request is queued but taking a long time, try this one again in an hour: {provider_name}:\n   {url}\n')
+                        return -1
                     if sleep_delay < 5:
                         sleep_delay = 5
                     time.sleep(sleep_delay)
@@ -204,8 +207,13 @@ def get_json_data(url, provider_info):
 
             ### these are the while-try
             except requests.exceptions.Timeout:
-                log_error(f"ERROR: trying to get supported reports list for  {provider_name}\n{url}: The URL request timed out.")
-                return None
+                if attempts <= 2:
+                    #log_error(f"ERROR: trying to get report for {provider_name}\n{url}\nThe URL request timed out. Will try again\n")
+                    time.sleep(sleep_delay+5)
+                    continue
+                else:
+                    log_error(f"ERROR: trying to get report for {provider_name}: The URL request timed out after multiple tries.\n   {url}\n")
+                    return None
             except requests.exceptions.HTTPError as err:
                 log_error(f"ERROR: \nHTTP Error: {err}")
                 log_error(f"ERROR: Response Code: {err.response.status_code}")
@@ -382,7 +390,7 @@ def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_c
                 report_json_url = f"{base_url[:-1]}?{credentials}"
 
             ### *** Here is the actual call to get the report of supported reports #####
-            log_error(f'INFO: {provider_name}: supported reports API URL=\n{report_json_url}')
+            log_error(f'INFO: {provider_name}: supported reports API URL={report_json_url}')
             report_json = get_json_data(report_json_url, provider_info)
             ### get_json_data returns a list of dicts if successful  or an integer if unsuccessful
             #print(f'DEBUG: report_json: {report_json}\nreport_json is class: {type(report_json)}\n')
