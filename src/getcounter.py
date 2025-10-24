@@ -51,7 +51,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
     error_log_file = config['error_log_file']
     json_dir = config['json_dir']
     tsv_dir = config['tsv_dir']
-    data_table = config['data_table']
+    #data_table = config['data_table']
     save_empty_report = config['save_empty_report']
     always_include_header_metric_types = config['always_include_header_metric_types']
 
