@@ -19,3 +19,4 @@ If you want to write scripts in an editor like MS Word, be careful not to let it
 
 [Fiscal year date range example](fiscal_year.md)
 
+[Multi-report scripts and other advanced tricks](sample_scripts.md) - how to use a CASE statement instead of a lot of if/else, UNION across report types, and more
