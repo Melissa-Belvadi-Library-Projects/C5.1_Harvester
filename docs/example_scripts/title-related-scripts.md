@@ -12,7 +12,7 @@ You can change the metric type, range of years, specify a particular data_type, 
 select Title, sum(Metric_Usage) as Uses, Metric_Type, Data_Type
 from  TR
 where Metric_Type like 'Unique_Item_Requests'
-and Data_Year in (2023, 2024, 2025)
+and (Data_Year * 100 + Data_Month) BETWEEN 202405 AND 202504
 group by Title, Data_Type
 order by Uses Desc;
 ```
@@ -24,7 +24,7 @@ from TR
 where Metric_Type like 'Unique_Title_Requests'
 and Title like 'The Age of Sustainable Development'
 and Data_Type like 'Book'
-and Data_Year in (2023, 2024, 2025)
+and (Data_Year * 100 + Data_Month) BETWEEN 202405 AND 202504
 group by Title, Data_Type, Data_Year, Platform, Metric_Type
 order by Uses Desc;
 ```
