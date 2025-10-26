@@ -36,6 +36,7 @@ def sanitize_tsv_file(file_path):
     expected_tab_count = header_line.count('\t')
     expected_column_count = expected_tab_count + 1
 
+    original_content = "".join(lines)
     corrected_lines = [header_line]
     changes_made = False
 
@@ -52,11 +53,11 @@ def sanitize_tsv_file(file_path):
             processed_line = '\t'.join(truncated_columns) + '\n'
         else:
             processed_line = clean_line + '\n'
-        if processed_line != line:
-            changes_made = True
+
         corrected_lines.append(processed_line)
-    # --- Overwrite Phase (only if necessary) ---
-    if changes_made:
+    corrected_content = "".join(corrected_lines)
+    # Only if the final content is different from the original, do we write to the file.
+    if corrected_content != original_content:
         log_error(f"Inconsistencies found in {file_path}. Overwriting file with corrected data...")
         try:
             with open(file_path, "w", encoding="utf-8", newline='') as outfile:
