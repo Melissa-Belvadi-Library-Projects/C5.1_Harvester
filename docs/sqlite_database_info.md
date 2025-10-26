@@ -11,6 +11,7 @@ This document explains the structure of the sqlite database and how to use it. E
 - It resides in the main folder for the harvester.
 - All of its data comes from the EX versions of the 4 reports - PR, DR, TR, and IR, but the Report_Type column uses the two-letter Report_Type.
 - There are 4 tables, named for each of the 4 main reports as above. To see how they are defined, look at data_columns.py and create_tables.py.
+- Once the sqlite database and the four tables are created, the harvester only writes to those tables, not changing the database itself any further. This means you can import other tables (eg a KBART tsv file for one particular provider, a holdings list from your knowledge base that includes a subject column, a spreadsheet with price information per "database") to combine ("cross-tabulate") the COUNTER usage data with other information you have.
 
 ## Using the database
 
