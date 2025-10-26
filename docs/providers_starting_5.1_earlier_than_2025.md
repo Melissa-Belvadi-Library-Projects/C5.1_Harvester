@@ -2,15 +2,18 @@ Many providers have started to provider COUNTER 5.1 data before the required Jan
 
 Here are some of them as of October 2025:
 - Annual_Reviews: 2024-04
-- AVMA: 2024-07  (American Veterinary Medical Association)  (and possibly all other ScholarlyIQ-hosted providers)
+- AVMA (American Veterinary Medical Association), Brill: 2024-07   (and possibly other ScholarlyIQ-hosted providers)
 - EBSCO: 2022-01
 - Edward_Elgar: 2024-07
 - Elsevier Engineering Village: 2016-09  (use platform code: ev)
 - Elsevier ScienceDirect: 2015-01   (use platform code: sd)
 - Elsevier Scopus: 2021-04  (use platforms code: sc)
 - Gale: 2022-01
+- Infobase: 2022-01
 - JSTOR: 2023-01
 - Microbiology_Society: 2023-01
+- Ovid: 2022-10
+- Proquest (databases): 2024-11
 - Sage_books: 2023-01
 - Wiley: 2024-08
 

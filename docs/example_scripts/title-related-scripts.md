@@ -8,27 +8,26 @@ COUNTER Metrics has an excellent set of tutorials for librarians at [COUNTER Met
 Find the highest unique_item_requests across all providers, data_types.
 You can change the metric type, range of years, specify a particular data_type, etc.
 
-'select Title, sum(Metric_Usage) as Uses, Metric_Type, Data_Type
-from usage_data
-where Report_Type = 'TR'
-and Metric_Type like 'Unique_Item_Requests'
+```SQL
+select Title, sum(Metric_Usage) as Uses, Metric_Type, Data_Type
+from  TR
+where Metric_Type like 'Unique_Item_Requests'
 and Data_Year in (2023, 2024, 2025)
 group by Title, Data_Type
 order by Uses Desc;
-'
+```
 
 And then once you identify a particular title that you want to learn more about, eg what platform, you can get all the details with (sample title plugged in, adjusted the metric because it is a book, etc.):
-'
+```SQL
 select Platform, Title, sum(Metric_Usage) as Uses, Data_Year, Metric_Type, Data_Type
-from usage_data
-where Report_Type = 'TR'
-and Metric_Type like 'Unique_Title_Requests'
+from TR
+where Metric_Type like 'Unique_Title_Requests'
 and Title like 'The Age of Sustainable Development'
 and Data_Type like 'Book'
 and Data_Year in (2023, 2024, 2025)
 group by Title, Data_Type, Data_Year, Platform, Metric_Type
 order by Uses Desc;
-'
+```
 
 In general, Unique_Title_Requests is the best metric for books, unless you really want usage for each chapter to count separately, then use Unique_Item_Requests. Unique_Item_Requests is the best for journals.
 
@@ -41,29 +40,29 @@ This example shows how to sum up metric_usage, which is something you'll want to
 The "as Usage" simply gives a nice display to that column heading in the output instead of the actual formula. 
 Be aware of the problem of two books having the same title that are NOT the same book. You can consider using ISBN but often the ISBN for the same book is different on different platforms.
 
-```
-select distinct Title , Metric_Type, sum(Metric_Usage) as Usage, YOP, Data_Year  from usage_data ud  
-where Report_Type like 'TR' and Metric_Type like 'Unique_Title_Investigations' and Data_Type  like 'Book'
-and Title not in (select distinct Title from usage_data ud2  where Metric_Type like '%Requests')
+```SQL
+select distinct Title , Metric_Type, sum(Metric_Usage) as Usage, YOP, Data_Year  from TR  
+where Metric_Type like 'Unique_Title_Investigations' and Data_Type  like 'Book'
+and Title not in (select distinct Title from TR  where Metric_Type like '%Requests')
 group by Title, Data_Year, YOP;
 ```
 
 If you want to be specific to a particular provider (so the sum is per provider), you can add to both the select and group by sections the column "Provider_Name". 
 But that will not show you if a title was investigated on one platform that didn't have the full text, but another one did.
 
-```
-select distinct Title , Metric_Type, sum(Metric_Usage) as Usage, ISBN , YOP, Data_Year, Provider_Name  from usage_data ud  
-where Report_Type like 'TR' and Metric_Type like 'Unique_Title_Investigations' and Data_Type  like 'Book'
-and Title not in (select distinct Title from usage_data ud2  where Metric_Type like '%Requests')
+```SQL
+select distinct Title , Metric_Type, sum(Metric_Usage) as Usage, ISBN , YOP, Data_Year, Provider_Name  from TR
+where Metric_Type like 'Unique_Title_Investigations' and Data_Type  like 'Book'
+and Title not in (select distinct Title from TR  where Metric_Type like '%Requests')
 group by Title, Data_Year, ISBN, YOP, Provider_Name;
 ```
 
 ## Journal title investigations without full text requests across multiple platforms without regard for YOP
 
-```
-select distinct Title , Metric_Type, sum(Metric_Usage) as Usage  from usage_data ud  
-where Report_Type like 'TR' and Metric_Type like 'Unique_Item_Investigations' and Data_Type  like 'Journal'
-and Title not in (select distinct Title from usage_data ud2  where Metric_Type like '%Requests')
+```SQL
+select distinct Title , Metric_Type, sum(Metric_Usage) as Usage  from TR  
+where Metric_Type like 'Unique_Item_Investigations' and Data_Type  like 'Journal'
+and Title not in (select distinct Title from TR where Metric_Type like '%Requests')
 group by Title, Provider_Name;
 ```
 
@@ -71,12 +70,11 @@ group by Title, Provider_Name;
 
 Find books across all platforms that have one or more turnaways/denials as defined by the COUNTER "No_License" metric, summing up the denials by calendar year. YOP in this situation helps to separate different editions of a book, as the actual edition # may or may not be included in the title. ISBNs are used to distinguish different books with the same title, but that may also have the effect of splintering denials of the same book across two platforms where the platforms do not report the same ISBN (this can happen).
 
-```
+```SQL
 select Title, REPLACE(ISBN, '-', '') as ISBN, sum(Metric_Usage) as Denials, Data_Year as Denials,YOP
-from usage_data
+from TR
 where
 Data_Type like 'Book'
-and Report_Type like 'TR'
 and Metric_Type like 'No_License'
 group by Title, ISBN, Data_Year, YOP
 order by Denials Desc, Data_Year;
@@ -84,14 +82,20 @@ order by Denials Desc, Data_Year;
 
 ## Book usage across two platforms by title
 
-Find books that have the same title in two different platforms (hopefully the same book) and compare their usage in the two; this sample uses EBSCO and Proquest:
+Find books that have the same title in two different platforms (hopefully the same book) and compare their usage in the two; this sample demonstrates what is called a "self-join" which allows you to compare data within the same table where one column, like Provider_Name is different, but another column is the same for both providers (in this case), like Title. 
 
-`SELECT ud.Title, ud.metric_usage, ud2.metric_usage, ud.ISBN, ud2.ISBN FROM usage_data ud
-join usage_data ud2 on (ud2.Title = ud.Title)
+The Provider_Name values should match what you give as the name in your providers.tsv file.
+
+```SQL
+SELECT t1.Title, t1.metric_usage as EBSCO_Usage, t2.metric_usage as Proquest_Usage,
+REPLACE(t1.ISBN, '-', '') as EBSCO_ISBN, REPLACE(t2.ISBN, '-', '') as Proquest_ISBN
+FROM TR t1
+join TR t2 on (t2.Title = t1.Title)
 WHERE
-ud.Report_Type like 'TR' and ud2.Report_Type like 'TR'
-and ud.Metric_Type = 'Unique_Title_Requests'
-and ud2.Metric_Type = 'Unique_Title_Requests'
-and ud.Provider_Name like 'EBSCO'
-and ud2.Provider_Name like 'Proquest_books';
-`
+t1.Metric_Type = 'Unique_Title_Requests'
+and t2.Metric_Type = 'Unique_Title_Requests'
+and t1.Provider_Name like 'EBSCO'
+and t2.Provider_Name like 'Proquest_books';
+```
+
+Note that exact title matches don't necessarily work well across providers. Problems include moving "The" from the front to end of the field, different punctuation around a subtitle ":", the presence of the subtitle at all, and inclusion of extraneous text in the Title field in one but not the other (e.g. "(Fourth Edition)").
