@@ -394,11 +394,11 @@ def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_c
             report_json = get_json_data(report_json_url, provider_info)
             ### get_json_data returns a list of dicts if successful  or an integer if unsuccessful
             #print(f'DEBUG: report_json: {report_json}\nreport_json is class: {type(report_json)}\n')
-            make_report_id_uppercase(report_json) # some providers are sending the report_ids as lower case but we need them upper to compare to "list"
+
             if not report_json or isinstance(report_json, int):
                 log_error(f'ERROR: did not get valid json response for this url, {report_json_url}, skipping provider\n')
                 continue
-
+            make_report_id_uppercase(report_json) # some providers are sending the report_ids as lower case but we need them upper to compare to "list"
             # Now we can process the list of reports
             # Loop through the list of reports supported as returned by get_json_data to create all URLs for supported reports
             #  Need to figure out where custom reports will fit into this           if is_custom_report(provider_info, report_type)
