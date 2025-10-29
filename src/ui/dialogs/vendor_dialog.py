@@ -529,18 +529,43 @@ class VendorManagementDialog(QDialog):
         else:
             self.accept()
 
+    # def _show_help(self):
+    #     """Show help documentation."""
+    #     help_url = get_help_url("providers")
+    #
+    #     reply = QMessageBox.question(
+    #         self, "Provider Management Help",
+    #         "Open Provider help documentation in browser?",
+    #         QMessageBox.StandardButton.Yes |
+    #         QMessageBox.StandardButton.No
+    #     )
+    #
+    #     if reply == QMessageBox.StandardButton.Yes:
+    #         try:
+    #             webbrowser.open(help_url)
+    #         except Exception as e:
+    #             QMessageBox.information(
+    #                 self, "Help",
+    #                 f"Please visit:\n{help_url}\n\n"
+    #                 f"(Could not open browser: {e})"
+    #             )
     def _show_help(self):
-        """Show help documentation."""
-        help_url = get_help_url("providers")
+        """Show help documentation for settings dialog."""
 
-        reply = QMessageBox.question(
-            self, "Provider Management Help",
-            "Open Provider help documentation in browser?",
-            QMessageBox.StandardButton.Yes |
-            QMessageBox.StandardButton.No
-        )
+        help_url = get_help_url('providers')
 
-        if reply == QMessageBox.StandardButton.Yes:
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Provider Management Help")
+        msg_box.setText("Open the Provider Help page in your browser?")
+        # msg_box.setIcon(QMessageBox.Icon.Question)
+
+        yes_btn = msg_box.addButton("Open", QMessageBox.ButtonRole.YesRole)
+        no_btn = msg_box.addButton("Cancel", QMessageBox.ButtonRole.NoRole)
+
+        msg_box.setDefaultButton(yes_btn)
+        msg_box.exec()
+
+        if msg_box.clickedButton() == yes_btn:
             try:
                 webbrowser.open(help_url)
             except Exception as e:
@@ -549,6 +574,8 @@ class VendorManagementDialog(QDialog):
                     f"Please visit:\n{help_url}\n\n"
                     f"(Could not open browser: {e})"
                 )
+
+
 
     def closeEvent(self, event):
         """Handle window close event (X button)."""

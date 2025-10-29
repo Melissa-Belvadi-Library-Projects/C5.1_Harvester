@@ -406,7 +406,7 @@ class SushiConfigDialog(QDialog):
             # Notifies user which fields are missing
             QMessageBox.information(
                 self, "Missing Required Fields",
-                f"You must fill these fields before closing:\n"
+                f"Please fill in the required field(s) before closing:\n"
                 f"{', '.join(missing_labels)}"
             )
             return  # Don’t close at all
@@ -442,12 +442,12 @@ class SushiConfigDialog(QDialog):
 
         msg_box = QMessageBox(self)
         msg_box.setWindowTitle("Settings Help")
-        msg_box.setText("Open Settings Help documentation in browser?")
+        msg_box.setText("Open the Settings Help page in your browser?")
         #msg_box.setIcon(QMessageBox.Icon.Question)
 
 
-        yes_btn = msg_box.addButton("Yes", QMessageBox.ButtonRole.YesRole)
-        no_btn = msg_box.addButton("No", QMessageBox.ButtonRole.NoRole)
+        yes_btn = msg_box.addButton("Open", QMessageBox.ButtonRole.YesRole)
+        no_btn = msg_box.addButton("Cancel", QMessageBox.ButtonRole.NoRole)
 
         msg_box.setDefaultButton(yes_btn)
         msg_box.exec()
