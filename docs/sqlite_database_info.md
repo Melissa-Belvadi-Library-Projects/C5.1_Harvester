@@ -25,6 +25,7 @@ An sqlite database can be searched ("queried") in a number of ways. There is a c
 But there are better options using graphical interfaces:
 -  If you have Microsoft Access, you can open an sqlite database with that and use whatever method you prefer to create queries.  There are lots of videos and web pages about how to do that.
 - We recommend a free program that is available on Windows, Mac, and Linux called dbeaver: (https://dbeaver.io/). There is a free version that works just fine for this purpose.
+- Another user of this harvester highly recommends the open source [DB Browser for SQLite](https://github.com/sqlitebrowser/sqlitebrowser)
 
 The tables are set up to only store 1 row per unique combination of the metric-defining settings, using a hash text that also handles null values. So if you download the "same" specific data point (same metric type, provider, month-year, title/database/platform etc.) more than once, it will overwrite ("replace") rather than add. That way, you'll always have the most recently available metrics, and only one copy of it, as you may download some data over and over, as would happen if you run a "year to date" type of report every month. 
 
