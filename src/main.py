@@ -3,6 +3,8 @@ import sys
 from pathlib import Path
 from PyQt6.QtWidgets import QApplication
 from ui.main_window import SushiHarvesterGUI
+from PyQt6.QtGui import QPalette, QColor
+from PyQt6.QtCore import Qt
 
 # Defines global QSS styles for the entire GUI. it overrides defaults of windows,frames,buttons
 GLOBAL_QSS = """
@@ -10,7 +12,7 @@ GLOBAL_QSS = """
 /* Universal defaults */
 * {
     font-size: 14px;
-    font-family: "Arial";  /* Fixed: removed extra space */
+    font-family: "Arial";
 }
 
 /* Textboxes */
@@ -19,6 +21,7 @@ QLineEdit {
     border-radius: 6px;
     padding: 4px;
     background-color: #ffffff;
+    color: #000000;
 }
 QLineEdit:hover {
     border: 2px solid #0078d7;
@@ -36,6 +39,7 @@ QLineEdit:disabled {
 /* Checkboxes */
 QCheckBox {
     spacing: 8px;
+    color: #000000;
 }
 QCheckBox::indicator {
     width: 18px;
@@ -70,7 +74,7 @@ QPushButton {
 }
 QPushButton:hover {
     background-color: #f2f2f2;
-     border: 2px solid #0078d7;
+    border: 2px solid #0078d7;
 }
 QPushButton:disabled {
     background-color: #f9f9f9;
@@ -83,7 +87,8 @@ QComboBox {
     border: 2px solid #ccc;
     border-radius: 6px;
     padding: 4px 8px;
-  
+    background-color: #ffffff;
+    color: #000000;
 }
 QComboBox:hover {
     border: 2px solid #0078d7;
@@ -95,55 +100,54 @@ QComboBox:focus {
 QComboBox::drop-down {
     border: none;
 }
+QComboBox QAbstractItemView {
+    background-color: #ffffff;
+    color: #000000;
+    selection-background-color: #0078d7;
+    selection-color: #ffffff;
+}
 
 /* SpinBox (year selectors) */
-
 QSpinBox {
     border: 2px solid #ccc;
     border-radius: 6px;
     background-color: #ffffff;
+    color: #000000;
     padding: 4px 8px;
 }
-
 QSpinBox::up-button, QSpinBox::down-button {
     width: 20px;
 }
-
 QSpinBox::up-arrow, QSpinBox::down-arrow {
     width: 12px;
     height: 12px;
 }
-
 QSpinBox:hover {
-
-border: 2px solid #0078d7;
-
+    border: 2px solid #0078d7;
 }
-
 QSpinBox:focus {
-
-border: 2px solid #005a9e;
-
-background-color: #f0f8ff;
-
+    border: 2px solid #005a9e;
+    background-color: #f0f8ff;
 }
-
 QSpinBox:disabled {
-
-background-color: #eeeeee;
-
-border: 2px solid #aaaaaa;
-
-color: #666666;
-
+    background-color: #eeeeee;
+    border: 2px solid #aaaaaa;
+    color: #666666;
 }
 
+/* Labels */
+QLabel {
+    color: #000000;
+    background-color: transparent;
+}
 
 /* App main background */
-QMainWindow > QWidget {
+QMainWindow {
     background-color: #eff2f6;
 }
-
+QWidget {
+    color: #000000;
+}
 
 /* Panels */
 QGroupBox {
@@ -152,8 +156,8 @@ QGroupBox {
     border-radius: 6px;
     margin-top: 20px;
     padding: 8px;
+    color: #000000;
 }
-
 QGroupBox::title {
     subcontrol-origin: margin;
     left: 10px;
@@ -161,19 +165,49 @@ QGroupBox::title {
     font-weight: bold;
     color: #000000;
 }
-
-
-
 """
+
+
+def set_light_palette(app):
+    """Force a light color palette regardless of system theme"""
+    palette = QPalette()
+
+    # Window colors
+    palette.setColor(QPalette.ColorRole.Window, QColor(239, 242, 246))
+    palette.setColor(QPalette.ColorRole.WindowText, QColor(0, 0, 0))
+
+    # Base colors (for input widgets)
+    palette.setColor(QPalette.ColorRole.Base, QColor(255, 255, 255))
+    palette.setColor(QPalette.ColorRole.AlternateBase, QColor(245, 245, 245))
+    palette.setColor(QPalette.ColorRole.Text, QColor(0, 0, 0))
+
+    # Button colors
+    palette.setColor(QPalette.ColorRole.Button, QColor(255, 255, 255))
+    palette.setColor(QPalette.ColorRole.ButtonText, QColor(0, 0, 0))
+
+    # Highlight colors
+    palette.setColor(QPalette.ColorRole.Highlight, QColor(0, 120, 215))
+    palette.setColor(QPalette.ColorRole.HighlightedText, QColor(255, 255, 255))
+
+    # Disabled colors
+    palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, QColor(102, 102, 102))
+    palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text, QColor(102, 102, 102))
+    palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, QColor(170, 170, 170))
+
+    app.setPalette(palette)
 
 
 def main():
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
+
+    # Sets light palette BEFORE applying stylesheet
+    set_light_palette(app)
+
     app.setStyleSheet(GLOBAL_QSS)
+
     window = SushiHarvesterGUI()
     window.show()
-
 
     sys.exit(app.exec())
 
