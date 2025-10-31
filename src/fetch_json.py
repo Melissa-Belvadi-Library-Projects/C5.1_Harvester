@@ -8,10 +8,12 @@ from dateutil.relativedelta import relativedelta
 import brotli
 from logger import log_error
 import traceback
-from sushiconfig import error_log_file, default_begin
+#from current_config import error_log_file, default_begin
+#Removed - not actually used in this file (only imports for reference)
 from tsv_utils import default_metric_types, official_reports #default metric types is also a list of all possible valid report types, as the keys
 #from requests.exceptions import SSLError
 #from urllib3.exceptions import SSLCertVerificationError
+
 
 ''' Example of custom report for later development:
  {
@@ -25,89 +27,13 @@ from tsv_utils import default_metric_types, official_reports #default metric typ
   },
 '''
 
+
 def is_json(ij_dict):
     try:
         json.loads(ij_dict)  # Try to parse the variable as JSON
         return True
     except (json.JSONDecodeError, TypeError):
         return False
-
-def get_dates():
-    global default_begin
-    # Calculate default end date (previous month)
-    today = datetime.now()
-    default_end = (today - relativedelta(months=1)).strftime('%Y-%m')
-    #default_begin set in sushiconfig
-    if not default_begin:
-        default_begin = "2025-01"
-
-    print("What start and end dates do you want to collect data for?")
-    print(f"(Press Enter for default: Begin={default_begin}, End={default_end})")
-
-    while True:
-        # Prompt for Begin Date
-        begin_date = input("Enter the Begin Date (yyyy-mm): ").strip()
-
-        # Use default if empty
-        if begin_date == "":
-            begin_date = default_begin
-            print(f"Using default begin date: {begin_date}")
-
-        # Validate Begin Date format
-        if validate_date(begin_date):
-            break
-        else:
-            print("Invalid format. Please enter the begin date in 'yyyy-mm' format.")
-            exit(0)
-
-    while True:
-        # Prompt for End Date
-        end_date = input("Enter the End Date (yyyy-mm): ").strip()
-
-        # Use default if empty
-        if end_date == "":
-            end_date = default_end
-            print(f"Using default end date: {end_date}")
-
-        # Validate End Date format
-        if validate_date(end_date):
-            break
-        else:
-            print("Invalid format. Please enter the end date in 'yyyy-mm' format.")
-            exit(0)
-
-    return begin_date, end_date
-
-def get_report_type():
-    print(f'You can choose just one report type (eg TR_J1) or Enter for all of them. Type it in caps\n')
-    report_type = input("What report type: ").strip().upper()
-    if not report_type:
-        print(f'Retrieving all supported report types for your providers.\n\n')
-        return None
-    elif report_type in official_reports:
-        if report_type and report_type[-1].isdigit():
-            print("Standard views will generate tsv but will not save any data to the sqlite database.")
-            log_error(f"INFO: Standard view {report_type} will generate tsv but will not save any data to the sqlite database.")
-        else:
-            log_error(f"INFO: Report {report_type} will generate tsv and will save data to the sqlite database.")
-        return(report_type)
-    else:
-        print(f'{report_type}: Sorry, this harvester cannot yet retrieve provider custom reports. Exiting.\n')
-        #log_error(f'INFO: Report type: {report_type} is custom to this provider. A tsv will be created but nothing saved to the sqlite database\n')
-        exit(0)
-
-def is_custom_report(provider_info, report_type):
-    if report_type:
-        if report_type not in official_reports:
-            special_base_url = base_url.strip('/')+provider_info('Path')
-        else:
-            return None
-    else:
-        return None
-    report_name = provider_info.get('Report_Name','')
-    report_description = provider_info.get('Report_Description','')
-    return special_base_url, report_name, report_description
-
 
 def validate_date(date_string):
     try:
@@ -116,6 +42,9 @@ def validate_date(date_string):
         return True
     except ValueError:
         return False
+
+
+
 
 def check_dates(provider_name, begin_date, end_date, first_month, last_month):
     # Convert string dates to datetime objects for comparison
@@ -135,6 +64,7 @@ def check_dates(provider_name, begin_date, end_date, first_month, last_month):
         log_error(f"WARNING: data from {provider_name} only available through {last_month}")
         end_date=last_month
     return begin_date, end_date
+
 
 def get_dd(date_string, position):
     #Generates the first or last date of a given month in the format YYYY-MM. Returns a string in format YYYY-MM-DD
@@ -164,6 +94,7 @@ def get_dd(date_string, position):
         return date_object.strftime("%Y-%m-%d")
     except Exception as e:
         raise ValueError(f"ERROR processing input: {e}")
+
 
 ### This is used for getting all URLs via the SUSHI API - the list of supported reports, and the individual reports
 # return None means a failure of this one URL
@@ -211,7 +142,10 @@ def get_json_data(url, provider_info):
                     break
                 elif response.status_code == 202:
                     http_desc = (f"Request is queued - try again later:{url}\n {response.text}")
-                    log_error(f'{http_desc}\n')
+                    #log_error(f'{http_desc}\n')
+                    if attempts > 2:
+                        log_error(f'ERROR: Request is queued but taking a long time, try this one again in an hour: {provider_name}:\n   {url}\n')
+                        return -1
                     if sleep_delay < 5:
                         sleep_delay = 5
                     time.sleep(sleep_delay)
@@ -273,8 +207,13 @@ def get_json_data(url, provider_info):
 
             ### these are the while-try
             except requests.exceptions.Timeout:
-                log_error(f"ERROR: trying to get supported reports list for  {provider_name}\n{url}: The URL request timed out.")
-                return None
+                if attempts <= 2:
+                    #log_error(f"ERROR: trying to get report for {provider_name}\n{url}\nThe URL request timed out. Will try again\n")
+                    time.sleep(sleep_delay+5)
+                    continue
+                else:
+                    log_error(f"ERROR: trying to get report for {provider_name}: The URL request timed out after multiple tries.\n   {url}\n")
+                    return None
             except requests.exceptions.HTTPError as err:
                 log_error(f"ERROR: \nHTTP Error: {err}")
                 log_error(f"ERROR: Response Code: {err.response.status_code}")
@@ -301,6 +240,7 @@ def get_json_data(url, provider_info):
 
         #out of the while loop without a return -1 interrupting it
         report_json = response.json()
+        #print(f'2: report_json: {report_json}\nreport_json is class: {type(report_json)}\n')
         # Handle brotli encoding if present
         if response.headers.get('Content-Encoding') == 'br':
             decoded_content = brotli.decompress(response.content)
@@ -309,6 +249,7 @@ def get_json_data(url, provider_info):
             log_error(f"ERROR: Failed to get a valid response after 3 attempts, url={url}")
             return -1
 
+        #print(f'DEBUG3: report_json: {report_json}\nreport_json is class: {type(report_json)}\n')
         return report_json
 
     except Exception as e2:
@@ -329,25 +270,45 @@ def timedelay(provider_name,thisdelay):
         log_error(f"ERROR: 'Delay' for {provider_name} is unexpected, using 2 seconds; value: {thisdelay} -> {type(thisdelay)}")
     return delaylength
 
+def make_report_id_uppercase(report_json):
+    for report in report_json:
+        if "Report_ID" in report:
+            report["Report_ID"] = report["Report_ID"].upper()
+    return report_json
 
-def fetch_json(providers):
-    begin_date, end_date = get_dates()
+def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_callback=None):
+    """
+    Fetch provider API information with given parameters.
+
+    Args:
+        providers: List of provider dictionaries from load_providers
+        begin_date: Start date in YYYY-MM format
+        end_date: End date in YYYY-MM format
+        report_type_list: List of report types selected by the user in the GUI
+
+    Returns:
+        Dictionary of provider data or None on failure
+    """
     print(f"\nBegin Date: {begin_date}, End Date: {end_date}\n")
-
     data_dict = {}  # Initialize as an empty dictionary for providers
-    report_type_one = None
-    report_type_one = get_report_type() # if user wants only one specific kind of COUNTER report
 
+    if not report_type_list:
+        print("You did not select any report types.\n")
+        return None
 
     for provider in providers:
-        provider_info ={}
+        #print(f"{is_cancelled_callback()} : {provider.get('Name')}")
+        if is_cancelled_callback():
+             break
+
+        provider_info = {}
         checked_date = 0
         get_report_url_credentials = ''
         get_report_url_final = ''
         get_report_url_daterange = ''
-        credentials =''
-        b=''
-        e=''
+        credentials = ''
+        b = ''
+        e = ''
         # Access mandatory fields
         provider_name = provider.get('Name')
         base_url = provider.get('Base_URL')
@@ -374,7 +335,8 @@ def fetch_json(providers):
                 present_info.append(f"Customer_ID: {customer_id}")
 
             # Print error information
-            print(f"Error: Missing mandatory fields, skipping this provider: {', '.join(missing_fields)}. Present: {', '.join(present_info)}\n")
+            print(
+                f"Error: Missing mandatory fields, skipping this provider: {', '.join(missing_fields)}. Present: {', '.join(present_info)}\n")
             continue  # Skip to next provider if mandatory fields are missing
 
         # Optional fields accessed safely
@@ -382,17 +344,17 @@ def fetch_json(providers):
         api_key = provider.get('API_Key', '')
         platform = provider.get('Platform', '')
         version = provider.get('Version', '5.1')  # Default to '5.1' if not provided
-        delay = provider.get('Delay', '')            # Optional field
-        retry = provider.get('Retry', '')            # Optional field
+        delay = provider.get('Delay', '')  # Optional field
+        retry = provider.get('Retry', '')  # Optional field
         first_month_available = provider.get('First_Month_Available', '')
         last_month_available = provider.get('Last_Month_Available', '')
-        path = provider.get('Path', '') # for custom reports
-        report_name = provider.get('Report_Name', '') # for custom reports
-        report_description = provider.get('Report_Description', '') # for custom reports
+        path = provider.get('Path', '')  # for custom reports
+        report_name = provider.get('Report_Name', '')  # for custom reports
+        report_description = provider.get('Report_Description', '')  # for custom reports
 
         # Initialize the provider entry
         provider_info = {
-            'Name' : provider_name,
+            'Name': provider_name,
             'Base_URL': base_url,
             'Customer_ID': customer_id,
             'Requestor_ID': requestor_id,
@@ -401,20 +363,20 @@ def fetch_json(providers):
             'Version': version,
             'Delay': delay,
             'Retry': retry,
-            'Path' : path,
-            'First_Month_Available' : first_month_available,
-            'Last_Month_Available' : last_month_available,
-            'Report_Name' : report_name,
-            'Report_Description' : report_description,
+            'Path': path,
+            'First_Month_Available': first_month_available,
+            'Last_Month_Available': last_month_available,
+            'Report_Name': report_name,
+            'Report_Description': report_description,
             'Report_URLS': {}  # Initialize the report URLs dictionary
         }
-        #account credentials from the providers.tsv are always used together as a string
+        # account credentials from the providers.tsv are always used together as a string
         credentials = f"customer_id={customer_id}" if customer_id else credentials
         credentials = f"{credentials}&requestor_id={requestor_id}" if requestor_id else credentials
         credentials = f"{credentials}&api_key={api_key}" if api_key else credentials
 
-        try: ### first we're going to get the list of supported reports
-	    # fix base_urls from the providers.tsv to make sure there is exactly one suffix: /reports/
+        try:  ### first we're going to get the list of supported reports
+            # fix base_urls from the providers.tsv to make sure there is exactly one suffix: /reports/
             if not base_url.endswith("/reports/"):
                 if base_url.endswith("/reports"):
                     base_url = f"{base_url}/"
@@ -427,110 +389,132 @@ def fetch_json(providers):
             else:
                 report_json_url = f"{base_url[:-1]}?{credentials}"
 
-             ### *** Here is the actual call to get the report of supported reports #####
-            log_error(f'INFO: {provider_name}: supported reports API URL=\n{report_json_url}')
-            report_json = get_json_data(report_json_url,provider_info)
-            if not report_json:
-                log_error(f'ERROR: get_json_data failed for this url, {report_json_url}, skipping provider\n')
-                continue
-            elif report_json == -1:
-                log_error(f'ERROR: get_json_data failed fatally not specific to this url,{report_json_url}, which means skip this entire provider\n')
-                continue #try the next provider
+            ### *** Here is the actual call to get the report of supported reports #####
+            log_error(f'INFO: {provider_name}: supported reports API URL={report_json_url}')
+            report_json = get_json_data(report_json_url, provider_info)
+            ### get_json_data returns a list of dicts if successful  or an integer if unsuccessful
+            #print(f'DEBUG: report_json: {report_json}\nreport_json is class: {type(report_json)}\n')
 
-            # Now we can process the list of  reports
+            if not report_json or isinstance(report_json, int):
+                log_error(f'ERROR: did not get valid json response for this url, {report_json_url}, skipping provider\n')
+                continue
+            make_report_id_uppercase(report_json) # some providers are sending the report_ids as lower case but we need them upper to compare to "list"
+            # Now we can process the list of reports
             # Loop through the list of reports supported as returned by get_json_data to create all URLs for supported reports
             #  Need to figure out where custom reports will fit into this           if is_custom_report(provider_info, report_type)
             if isinstance(report_json, list):  # this must be the supported_reports api response
+                # first check if ANY of the supported reports are among the ones the user selected in the GUI
+                report_ids_in_json = {report.get('Report_ID') for report in report_json if 'Report_ID' in report}
+                if report_ids_in_json.isdisjoint(report_type_list):
+                    # If there's no overlap, log it (optional) and skip this whole provider.
+                    log_error(f"WARNING: Skipping provider {provider_name} as none of its available reports were selected by the user.")
+                    continue  # This 'continue' applies to the OUTER loop
                 for report in report_json:
                     if "Report_ID" not in report:
                         log_error(f"ERROR: No_report_id: a report from {provider_name} does not contain Report_ID\n")
                         continue
                     report_id = report.get('Report_ID')
-                    if report_type_one:
-                        if report_id != report_type_one:
-                            continue # skip to the next report in the list for this provider
-                    if platform:## this is the providers.tsv platform, NOT the Platform Report meaning of platform
+                    if report_id not in report_type_list:
+                        continue  # skip to the next report in the list available from this provider that is also in the user_selections vendors list
+                    if platform:  ## this is the providers.tsv platform, NOT the Platform Report meaning of platform
                         get_report_url_credentials = f'{base_url}{report_id.lower()}?{credentials}&platform={platform}'
                     else:
                         get_report_url_credentials = f'{base_url}{report_id.lower()}?{credentials}'
-                    #Determine the overlap between what date range the user asked for, and what is available for this report
+                    # Determine the overlap between what date range the user asked for, and what is available for this report
                     first_month = report.get('First_Month_Available', '')
                     if not validate_date(first_month):
-                        b=begin_date
+                        b = begin_date
                     last_month = report.get('Last_Month_Available', '')
                     if not validate_date(last_month):
-                        e=end_date
+                        e = end_date
                     # adjusts and notifies user if user wants too early begin or too late end
                     if validate_date(first_month) and validate_date(last_month) and not checked_date:
                         b, e = check_dates(provider_name, begin_date, end_date, first_month, last_month)
                         checked_date = 1
-                    if (b > begin_date and not checked_date) and (e  < end_date and not checked_date):
-                        print(f"WARNING: data from {provider_name} will not start until {b} and  only available through {e}\n")
-                        log_error(f"WARNING: data from {provider_name} will not start until {b} and  only available through {e}\n")
+                    if (b > begin_date and not checked_date) and (e < end_date and not checked_date):
+                        print(
+                            f"WARNING: data from {provider_name} will not start until {b} and  only available through {e}\n")
+                        log_error(
+                            f"WARNING: data from {provider_name} will not start until {b} and  only available through {e}\n")
                     elif b > begin_date and not checked_date:
                         print(f"WARNING: data from {provider_name} will not start until {b}")
                         log_error(f"WARNING: data from {provider_name} will not start until {b}\n")
-                    elif e  < end_date and not checked_date:
+                    elif e < end_date and not checked_date:
                         print(f"WARNING: data from {provider_name} only available through {e}")
                         log_error(f"WARNING: data from {provider_name} only available through {e}\n")
                     if not validate_date(first_month):
                         b = begin_date
                     if not validate_date(last_month):
                         e = end_date
-                    b = get_dd(b,"begin")
+                    ### Note that begin and end dates start as yyyy-mm but for the API call, they need to be yyyy-mm-dd
+                    ###  eg begin 2025-01-01 and end 2025-12-31 or whatever is the last valid date in that month, eg 2025-02-28
+                    b = get_dd(b, "begin")
                     e = get_dd(e, "end")
                     provider_info['Dates'] = f"{b}-{e}"
                     # Append begin and end dates
                     ### For the master reports we will get them twice - the primary one will have the default attributes to show,
-                    #### and the "extra" one will have more attributes to show for maximizing the data collection for the database
-                    #### this program will invent its own "standard view" for this: TR_EX, DR_EX, etc.
+                    ### and the "extra" one will have more attributes to show for maximizing the data collection for the database
+                    ### this program will invent its own "standard view" for this: TR_EX, DR_EX, etc.
 
                     get_report_url_daterange = f"{get_report_url_credentials}&begin_date={b}&end_date={e}"
                     # Maximize all possible additional data breakdowns using attributes_to_show
                     extra_report_id = report_id + "_EX"
                     if report_id == 'IR':
                         IR_EX_attributes_to_show = "Authors|Publication_Date|Article_Version|YOP|Access_Type|Access_Method"
-                        get_report_url_final_extra =f"{get_report_url_daterange}&attributes_to_show={IR_EX_attributes_to_show}&include_parent_details=True"
-                        get_report_url_final =f"{get_report_url_daterange}"
+                        get_report_url_final_extra = f"{get_report_url_daterange}&attributes_to_show={IR_EX_attributes_to_show}&include_parent_details=True"
+                        get_report_url_final = f"{get_report_url_daterange}"
                     elif report_id == 'TR':
-                        get_report_url_final =f"{get_report_url_daterange}"
-                        get_report_url_final_extra =f"{get_report_url_daterange}&attributes_to_show=YOP|Access_Method|Access_Type"
+                        get_report_url_final = f"{get_report_url_daterange}"
+                        get_report_url_final_extra = f"{get_report_url_daterange}&attributes_to_show=YOP|Access_Method|Access_Type"
                     elif report_id in {'DR', 'PR'}:
-                        get_report_url_final =f"{get_report_url_daterange}"
-                        get_report_url_final_extra =f"{get_report_url_daterange}&attributes_to_show=Access_Method"
-                    elif report_id not in official_reports:#most likely a custom report
-                        log_error(f'INFO: {provider_name} offers a custom report called {report_id} but this harvester does not support those yet.\n')
-                        continue # go on to the next report for this provider
+                        get_report_url_final = f"{get_report_url_daterange}"
+                        get_report_url_final_extra = f"{get_report_url_daterange}&attributes_to_show=Access_Method"
+                    elif report_id not in official_reports:  # most likely a custom report
+                        log_error(
+                            f'INFO: {provider_name} offers a custom report called {report_id} but this harvester does not support those yet.\n')
+                        continue  # go on to the next report for this provider
                     else:
-                        get_report_url_final = get_report_url_daterange   ### we don't change attributes or filters on standard views
+                        get_report_url_final = get_report_url_daterange  ### we don't change attributes or filters on standard views
 
                     # Add the report URL to the provider's entry
                     provider_info['Report_URLS'][report_id] = get_report_url_final
-                    #Also request the "_EX" versions for the sqlite database
-                    if report_id in ("IR","TR","DR","PR"):
+                    # Also request the "_EX" versions for the sqlite database
+                    if report_id in ("IR", "TR", "DR", "PR"):
                         provider_info['Report_URLS'][extra_report_id] = get_report_url_final_extra
 
                 # Store the provider information in the main dictionary
                 data_dict[provider_name] = provider_info  # Add provider_info dict  directly to the data_dict
             else:
-                log_error(f'ERROR: The response to the url {report_json_url} is not the expected supported reports list\n')
+                log_error(
+                    f'ERROR_INFO: The API response to the url {report_json_url} is not a proper json list\n')
                 if isinstance(report_json, dict):
-                    if report_json.get("Code", None):
-                        log_error(f'ERROR: A COUNTER Exception code was provided: {report_json.get("Code")}:\nMessage: {report_json.get("Message","(None provided)")}\n')
+                    if ExceptionCode := report_json.get("Code", None):
+                        ErrorText = f'ERROR: A COUNTER Exception code was provided: {ExceptionCode}'
+                        if ExceptionMessage := report_json.get("Message", None):
+                            ErrorText += f'; Message: {ExceptionMessage}'
+                        if ExceptionData := report_json.get("Data", None):
+                            ErrorText += f'; Data: {ExceptionData}'
+                        if ExceptionHelp_URL := report_json.get("Help_URL", None):
+                            ErrorText += f'; Help_URL: {ExceptionHelp_URL}'
+                        log_error(f' this is a test {ErrorText}\n')
                 continue
         # these are all raised from get_json_data
         except requests.exceptions.HTTPError as http_err:
             print(f"HTTP error occurred for provider '{provider_name}': {http_err}\nSee error log for details")
-            trace_details=traceback.format_exc()
+            trace_details = traceback.format_exc()
             log_error(f"ERROR: HTTP error occurred for provider '{provider_name}': {http_err}\n{trace_details}")
         except requests.exceptions.RequestException as req_err:
-            print(f"Error occurred while requesting data from provider '{provider_name}': {req_err}\nSee error log for details")
-            trace_details=traceback.format_exc()
-            log_error(f"ERROR: Error occurred while requesting data from provider '{provider_name}': {req_err}\n{trace_details}")
+            print(
+                f"Error occurred while requesting data from provider '{provider_name}': {req_err}\nSee error log for details")
+            trace_details = traceback.format_exc()
+            log_error(
+                f"ERROR: Error occurred while requesting data from provider '{provider_name}': {req_err}\n{trace_details}")
         except Exception as e:
-            trace_details=traceback.format_exc()
-            log_error(f"ERROR: Unexpected error occurred for {provider_name}: {type(e).__name__}: {str(e)}\n{trace_details}")
-    if len(data_dict)> 0:
+            trace_details = traceback.format_exc()
+            log_error(
+                f"ERROR: Unexpected error occurred for {provider_name}: {type(e).__name__}: {str(e)}\n{trace_details}")
+    if len(data_dict) > 0:
+        # log_error(f'DEBUG in fj looking for report header: {data_dict}\n')
         return data_dict
     else:
         return None

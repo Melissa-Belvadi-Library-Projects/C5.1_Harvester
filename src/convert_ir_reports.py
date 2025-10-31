@@ -40,17 +40,26 @@ def clean_string(text):   # Replace any double commas with a single comma and Re
         text = text[:-1]
     return text
 
-def clean_text(text): # """Convert UTF-8 escape sequences and remove HTML tags."""
+def clean_text(text):
+    """Decode unicode escape sequences and remove HTML tags from a string."""
     if not text:
         return text
+
+    # The 'unicode_escape' codec is designed specifically for this.
+    # It finds sequences like \u00e9 and converts them to the actual character.
+    # We wrap this in a try/except because it can fail on malformed sequences.
     try:
-        # Handle UTF-8 escape sequences
         if '\\u' in text:
-            text = json.loads(f'"{text.replace("`", "\\`").replace("\"", "\\\"")}"')
-    except:
-        pass  # Keep original if json.loads fails
-    # Remove HTML tags
+            # First, encode to latin-1 to preserve existing bytes, then decode with unicode_escape.
+            text = text.encode('latin-1', 'backslashreplace').decode('unicode_escape')
+    except Exception:
+        # If decoding fails, it's safer to leave the original text as is
+        # rather than having the function crash.
+        pass
+
+    # --- HTML tag removal
     text = re.sub(r'<[^>]+>', '', text)
+
     return text
 
 
@@ -198,7 +207,6 @@ def get_ir_a1_data(report_items,header_date_list):
                         elif item_key == "Item_ID":
                             if item_value and isinstance(item_value,dict):
                                 process_items_item_id(item_data_to_insert, item_value)
-
                         elif item_key == "Attribute_Performance":  # the actual usage data that determines the rows is within here; A-P is a list
                             if not item_value:
                                 log_error(f'ERROR: There is no Attribute Performance for this item - this should never happen\n')
@@ -206,8 +214,10 @@ def get_ir_a1_data(report_items,header_date_list):
                                 rows_to_insert = process_ir_attribute_performance(item_value,header_date_list)
                         elif item_value: # Some other key/value, expecting simple strings: Article_Version, Platform, Publisher
                             item_data_to_insert[item_key] = clean_text(item_value)
+                        elif item_key == "Article_Version" and item_value == '':
+                            continue #Article Version should never be empty, but if we're here, it is empty
                         else:
-                            log_error(f'ERROR: Unexpected key={item_key}, value={item_value}\n')
+                            log_error(f'ERROR-detail: Unexpected key={item_key}, value={item_value}\n')
                     except Exception as h: # the try for the individual articles
                         log_error(f'ERROR: Exception in item level items: {str(h)}; item_key = {item_key}; item_value={item_value}\n')
                 for row in rows_to_insert: # save all of the data in rows to data_rows_to_insert
@@ -260,9 +270,11 @@ def get_ir_m1_data(report_items,header_date_list):# For IR_M1, there are no pare
                         else:
                             data_to_insert[item_key] = ''
                         continue
+                    if item_key == "Article_Version" and item_value == '':
+                        continue #Article Version should never be empty, but if we're here, it is empty
                     if item_value: # Some other key/value
                         #data_to_insert[item_key] = str(item_value)
-                        log_error(f'ERROR: unexpected extra key. check COP if key should be added: items {item_key} = {item_value}\n')
+                        log_error(f'ERROR-detail: unexpected extra key. check COP if key should be added: items {item_key} = {item_value}\n')
                         continue
             except Exception as h: # the try for the individual articles
                 log_error(f'ERROR: Exception h: {str(h)}; item_key = {item_key}; item_value={item_value}\n')
@@ -313,9 +325,11 @@ def get_ir_data(report_items,header_date_list):# For IR, there are no parents; r
                         else:
                             data_to_insert[item_key] = ''
                         continue
+                    if item_key == "Article_Version" and item_value == '':
+                        continue #Article Version should never be empty, but if we're here, it is empty
                     if item_value: # Some other key/value
                         #data_to_insert[item_key] = str(item_value)
-                        log_error(f'ERROR: unexpected extra key. check COP if key should be added: items {item_key} = {item_value}\n')
+                        log_error(f'ERROR-detail: unexpected extra key. check COP if key should be added: items {item_key} = {item_value}\n')
                         continue
             except Exception as h: # the try for the individual articles
                 log_error(f'ERROR: Exception h: {str(h)}; item_key = {item_key}; item_value={item_value}\n')
@@ -381,16 +395,17 @@ ISBN - string in Item_ID in the Items
                         elif item_key == "Item_ID":
                             if item_value and isinstance(item_value,dict):
                                 process_items_item_id(item_data_to_insert, item_value)
-
                         elif item_key == "Attribute_Performance":  # the actual usage data that determines the rows is within here; A-P is a list
                             if not item_value:
                                 log_error(f'ERROR: There is no Attribute Performance for this item - this should never happen\n')
                             else:
                                 rows_to_insert = process_ir_attribute_performance(item_value,header_date_list)
+                        elif item_key == "Article_Version" and item_value == '':
+                            continue #Article Version should never be empty, but if we're here, it is empty
                         elif item_value: # Some other key/value, expecting simple strings: Article_Version, Platform, Publisher
                             item_data_to_insert[item_key] = clean_text(item_value)
                         else:
-                            log_error(f'ERROR: Unexpected key={item_key}, value={item_value}\n')
+                            log_error(f'ERROR-detail: Unexpected key={item_key}, value={item_value}\n')
                     except Exception as h: # the try for the individual articles
                         log_error(f'ERROR: Exception in item level items: {str(h)}; item_key = {item_key}; item_value={item_value}\n')
                 for row in rows_to_insert: # save all of the data in rows to data_rows_to_insert

@@ -1,9 +1,15 @@
-#JSTOR
+# Provider specific quirks - Retries and Delays
 
-JSTOR requires you to run any particular report request twice, one full hour apart.
-This program has no way to automate that large a time gap.
-I recommend that you create a separate provider_jstor.tsv and put in your own calendar to re-run those later.
-As described in another document, you can either edit the sushiconfig twice, to change the providers.tsv filename to the 
-jstor one then put it back to your normal default, or copy your default providers.tsv to something like providers_all.tsv, 
-then copy the jstor one into that, and then switch those back. Editing the sushiconfig is probably easier, but be careful not to break the formatting of that file.
+Most providers document any non-default API request constraints. 
 
+For instance, they may require every specific report (combination of attribute settings and date range) to be requested twice with a delay between them, so their server can compile the report first.  This is what the "Retry" value in the providers.tsv file is for. You can put a "Y" for yes if the provider doesn't specify a specific delay time, or a number in seconds if they do. The harvester will use a reasonable default value if you put a "Y", but if you have a lot of those, expect the overall time for a harvest run to complete could run long.
+
+Others have a limit on how many API requests you can make over a fixed period of time, so they may not allow you to request all supported reports at the fast speed that the harvester can generate those API calls, but have to deliberately slow down the time between requests. This is what the "Delay" value in the providers.tsv file is for, in seconds.
+
+If a provider requires both of those, a "Y" in "Retry" will cause the harvester to see if there is a number of seconds in the "Delay" column and use that number for the Retry.
+
+Most providers include these limitations in the [Registry](https://registry.countermetrics.org/) entry.  However, some do not but just put the information into report headers as "exceptions". You may have to notice the warnings or error messages (which report the notes in those "exception" fields) when you first run harvests on those providers, and then update your providers.tsv file with that information.
+
+All providers that use Scholarly IQ as their data host require a 1 second delay between all API requests. So for all of these, be sure to put at least "1" in the Delay column for your providers in [this list of SIQ providers](https://registry.countermetrics.org/usage-data-host/436ccfaa-f0dd-4b50-a31f-63005c2feae7). To be safe you might want to use 2 or 3, and also to be safe a "2" for Retry.
+
+Providers that use Liblynx as their data host may require very long reports like IR, IR_A1 to be re-run a full hour later. You could put 3600 seconds in delay and 2 in retry, but that will likely confuse you when it takes several hours to complete. Suggestion: include in the provider name something to remind you of that problem so you do not combine these with other vendors. You may also want to name them so they appear at the top of your alpha list so you can"select all" then see these to deselect, and then easily select just them for overnight.  This is the list of [Liblynx providers](https://registry.countermetrics.org/usage-data-host/dcd08025-f8fb-48d8-a322-9a8a4043b518).

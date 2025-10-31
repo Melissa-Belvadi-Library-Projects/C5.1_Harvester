@@ -7,7 +7,8 @@ from dateutil.relativedelta import relativedelta
 import inspect
 import tsv_utils
 from tsv_utils import default_metric_types, format_nested_id, format_exceptions
-from sushiconfig import tsv_dir, always_include_header_metric_types, save_empty_report
+#from current_config import tsv_dir, always_include_header_metric_types, save_empty_report
+# Removed - will be passed as parameters,these values get cached at import time. We'll extract them from config dict instead.-Daniel
 from logger import log_error
 from reporting_period import reporting_period_build
 from convert_ir_reports import get_ir_a1_data, get_ir_m1_data, get_ir_data, get_ir_ex_data
@@ -98,7 +99,7 @@ def get_report_filter_string(dict):
             report_filter_string +="Access_Method="+str(header_access_method)
         report_filter_string = report_filter_string.rstrip("; ")
     else:
-            report_filter_string = ''
+        report_filter_string = ''
     return report_filter_string
 
 # Function to clean strings of `\r`
@@ -125,8 +126,14 @@ def ir_a1_extract_metrics_and_dates(report_items):#IR_A1/IR_M1 metrics and date 
                     usage_dates_list.update(dates.keys())
     return sorted(metric_type_list), sorted(usage_dates_list)
 
-def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
-    #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
+def convert_counter_json_to_tsv(report_type, json_file_path,provider_info,config):
+    # Added config parameter-Daniel
+
+    # Extract config values, These override any cached imports.-Daniel
+    tsv_dir = config['tsv_dir']
+    always_include_header_metric_types = config['always_include_header_metric_types']
+    save_empty_report = config['save_empty_report']
+
     try:
         # Load JSON data for reading
         with open(json_file_path, "r", encoding="utf-8") as f:
@@ -140,12 +147,13 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
         report_items = counter_data.get("Report_Items", None)
         if not report_items and not save_empty_report:
             print(f"No report items in {json_file_path}.\nReason: {report_header.get('Exceptions',[])[0].get('Message', '')}\n")
-            log_error(f'ERROR: No report items in {json_file_path}. Exceptions: {report_header.get('Exceptions',[])}')
+            log_error(f"ERROR: No report items in {json_file_path}. Exceptions: {report_header.get('Exceptions',[])}")
             return 0
         # Ensure tsv_dir is a string
         if not isinstance(tsv_dir, str):
             raise ValueError(f"ERROR: tsv_dir must be a string, but got {type(tsv_dir)}: {tsv_dir}")
         vendor = provider_info.get('Name', '').replace(' ','_')
+        provider_name = provider_info.get('Name', '')
         tsvsubfolder = os.path.join(tsv_dir, vendor)
         if not os.path.exists(tsv_dir):
             os.makedirs(tsv_dir)
@@ -163,7 +171,7 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
         # Retrieve the Report_ID which is the same as Report_Type except for the _EX special reports which are passed as report_type
         report_id = report_header.get("Report_ID", "")
         # The default list of metric_types by report type
-        ## If the user wants them all displayed they set always_include_header_metric_types in sushiconfig to True
+        ## If the user wants them all displayed they set always_include_header_metric_types in user config to True
         ### The COUNTER standard is to suppress the list in the header if the list exactly matches the default
         ### But some users may find it helpful to see them in the report header
 
@@ -357,8 +365,8 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
                 with open(tsv_full_path, "a", newline="", encoding="utf-8-sig") as f:
                     writer = csv.writer(f, delimiter="\t")
                     writer.writerow(ordered_values)
-            print(f"TSV file successfully created at: {tsv_full_path}")
-            log_error(f"INFO: TSV file successfully created at: {tsv_full_path}")
+            print(f"{provider_name}:{report_type} TSV file successfully created at: {tsv_full_path}")
+            log_error(f"INFO: {provider_name}:{report_type} TSV file successfully created at: {tsv_full_path}")
             #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
             return tsv_full_path # Done with the IR_A1/M1 report
         else:# Must be one of the non-IR reports or views
@@ -417,10 +425,10 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
                 ### A-P is a list, an attribute is a dict, and a "performance" within an attribute is a dict
                 for attr in attribute:  ### usully just one (dict) per item but in theory could be more than one
                     if 'Performance' not in attr: # in theory this should never happen but if it does, we skip this entire attr
-                        log_error(f'ERROR: There is no performance in this attribute block - this should never happen but we have to skip this attribute')
+                        log_error(f'ERROR_INFO: There is no performance in this attribute block - this should never happen but we have to skip this attribute: {attr}\n{row}\n')
                         continue
                     if not isinstance(attr, dict):
-                        log_error(f'ERROR: ATTR is {type(attr)}. That should never happen - skipping this atttribute block\n')
+                        log_error(f'ERROR_INFO: ATTR is {type(attr)}. That should never happen - skipping this atttribute block\n')
                         continue
                     for field in fields_to_add: ## For each possible field that this particular report could have column for
                         if field not in attr: ### now is this possible field also in our actual data
@@ -471,11 +479,11 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info):
                             # Write table row (line 16 onward)
                             writer.writerow(row)
 
-        print(f"TSV file successfully created at: {tsv_full_path}")
-        #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
+        print(f"{provider_name}:{report_type} file successfully created at: {tsv_full_path}")
+        log_error(f"INFO: {provider_name}:{report_type} TSV file successfully created at: {tsv_full_path}\n")
         return tsv_full_path
 
     except Exception as e:
         #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
-        print(f"An error occurred during the conversion: {e}\nThe tsv file  may not have been created properly.")
-        log_error(f"ERROR: An error occurred during the conversion: {e}\nThe tsv file  may not have been created properly.")
+        print(f"Error during the tsv creation: {e}\nThe tsv file  may not have been created properly.")
+        log_error(f"ERROR: Error during the tsv creation: {e}\nThe tsv file  may not have been created properly.")
