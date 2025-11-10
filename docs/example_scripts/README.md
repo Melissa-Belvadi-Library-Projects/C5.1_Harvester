@@ -29,3 +29,5 @@ If you want to write scripts in an editor like MS Word, be careful not to let it
 
 [Reproducing standard views](standard_views.md) - examples showing how to mostly imitate the filters, attributes, and metric types of the standard view (e.g. PR_P1, TR_J1, etc.)
 - This provides lots of examples of scripts using various features of the 4 tables and more examples of some of the advanced script techniques like CASE, combining year-month into a simpler column, and more
+
+[Comparing "open" and "controlled" usage](open_vs_controlled.md) - some really advanced sql scripting techniques to help you analyze by provider and year how much of your usage is open access vs controlled (paywalled) access.
