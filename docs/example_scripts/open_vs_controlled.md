@@ -129,8 +129,10 @@ ORDER BY
     Data_Year,
     Data_Type,
     Usage_Count DESC;our percentage calculation.
+```
+### Find per provider where open > controlled, give the usage counts
 
-
+```
 --Advanced Query: Directly Find Where Open > Controlled
 -- This is a very powerful technique that uses conditional aggregation to pivot the data.
 --Explanation:
