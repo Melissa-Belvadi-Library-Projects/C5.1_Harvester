@@ -7,7 +7,7 @@ These instructions assume the project has not provided a single executable for y
 Look for the file called **run_harvester.bat**
 This is a script you can use to change to the directory where you installed everything, activate the python "venv", and then run the harvester.
 This script assumes you used our example in Installation to put everything in Documents\COUNTER_Harvester, so you have a folder inside that called "venv" and another folder called "src".
-If you put everything somewhere else, edit that script file to change the PROJECT_DIR to wherever you put it.
+If you put everything somewhere else, edit that script file to change the PROJECT_DIR to wherever you put it. %USERPROFILE% is your Windows account's home directory (the folder that you see Desktop, Downloads, etc. as folder inside it). If you change it, do not include the /src part because the script itself does that further down.
 
 If you did not create a venv but just put all of the requirements.txt modules directly into your python installation, delete or comment out the script lines from "echo Activating the Python virtual environment..."  to the line right before: "echo Changing directory to the 'src' folder...".
 
