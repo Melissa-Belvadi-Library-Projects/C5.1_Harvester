@@ -391,7 +391,7 @@ def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_c
 
             ### *** Here is the actual call to get the report of supported reports #####
             log_error(f'INFO: {provider_name}: supported reports API URL={report_json_url}')
-            report_json = get_json_data(report_json_url, provider_info)
+            report_json = get_json_data(report_json_url.replace('|', '%7C'), provider_info)
             ### get_json_data returns a list of dicts if successful  or an integer if unsuccessful
             #print(f'DEBUG: report_json: {report_json}\nreport_json is class: {type(report_json)}\n')
 

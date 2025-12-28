@@ -164,33 +164,36 @@ def parse_tsv_file(file_path, provider_name, report_type):
         # Read the TSV data
         reader = csv.reader(tsv_file, delimiter='\t')
         headers = next(reader)  # 16th row has column headers
+        num_columns = len(headers)
+
         # Process each data row
         for row in reader:
             # Skip empty rows
-            if len(row) == 0 or all(not cell.strip() for cell in row):
+            if not row or len(row) == 0 or all(not cell.strip() for cell in row):
                 continue
 
-            # Create base dictionary with non-date columns
+            if len(row) < num_columns:
+                row.extend([''] * (num_columns - len(row)))            # Create base dictionary with non-date columns
+
             base_dict = {}
             date_columns = []
             base_dict["Provider_Name"] = provider_name
             base_dict["Report_Type"] = report_type[:2]
             # First pass: identify regular columns and date columns "headers" = column names
             for idx, header in enumerate(headers):
-                if idx < len(row):
-                    if header == "Reporting_Period_Total":
-                        continue
-                    # Check if this is a date column (MMM-YYYY format)
-                    if '-' in header and len(header.split('-')) == 2:
-                        month_str, year_str = header.split('-')
-                        if month_str in month_map:
-                            date_columns.append((idx, header, month_str, year_str))
-                        else:
-                            # Not a proper date column, treat as regular
-                            base_dict[header] = row[idx]
+                if header == "Reporting_Period_Total":
+                    continue
+                # Check if this is a date column (MMM-YYYY format)
+                if '-' in header and len(header.split('-')) == 2:
+                    month_str, year_str = header.split('-')
+                    if month_str in month_map:
+                        date_columns.append((idx, header, month_str, year_str))
                     else:
-                        # Regular column
+                        # Not a proper date column, treat as regular
                         base_dict[header] = row[idx]
+                else:
+                    # Regular column
+                    base_dict[header] = row[idx]
             # Second pass: create separate row for each date column with a value
             for col_idx, date_header, month_str, year_str in date_columns:
                 if col_idx < len(row) and row[col_idx].strip():
