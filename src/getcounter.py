@@ -41,6 +41,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
     #What this does , ConfigRepository()._get_defaults() = Get default settings from default_config.py
     #{**defaults, **config_dict} = Merge defaults with user's custom settings
     #Why? In the rare case ,user might not have set ALL settings, so we use defaults for missing ones.
+    log_error(f'INFO: user selections: begin: {begin_date}, end: {end_date}\nselected reports: {",".join(str(rid) for rid in selected_reports)}\nSelected providers: {",".join(str(rid) for rid in selected_vendors)}')
 
     defaults = ConfigRepository()._get_defaults()
     config = {**defaults, **config_dict}  # Merge: defaults + user settings
@@ -84,7 +85,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
         # Clear error log
         open(error_log_file, 'w', encoding="utf-8").close()
         current_time = datetime.now()
-        log_error(f'INFO: Start of harvester run: {current_time}')
+        log_error(f'INFO: Start of harvester run: {current_time}, user selected begin_date: {begin_date}, end_date: {end_date}\n')
 
         # Find the full path to the providers file using same logic as GUI-Daniel
         vendor_repo = VendorRepository(providers_file=providers_file)
@@ -105,7 +106,8 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
             'reports': selected_reports,
             'vendors': selected_vendors
         }
-
+        if begin_date > end_date:
+            log_error(f'User selected dates: begin date ({begin_date}) must be before end date ({end_date})\n   selected reports: {selected_reports}\n')
         #  callback functions for provider loading errors/warnings..used them instead of signals
         def error_callback(msg):
             log(f"ERROR: {msg}")
@@ -139,7 +141,7 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
         providers_dict = fetch_json(providers, begin_date, end_date, selected_reports, is_cancelled_callback)
 
         if not providers_dict:
-            error_msg = "Failed to fetch provider information from API"
+            error_msg = "Failed to fetch provider information from API or no providers are within your selected date range"
             log(f"ERROR: {error_msg}")
             results['errors'].append(error_msg)
             return results
@@ -165,6 +167,9 @@ def run_harvester(begin_date, end_date, selected_vendors, selected_reports, conf
             current_timestamp = datetime.now()
             formatted_time = current_timestamp.strftime("%M:%S")
             report_urls = provider_info.get('Report_URLS', {})
+            if not report_urls:
+                log_error(f'WARNING: no reports for provider: {provider_name} met your criteria for retrieval\n')
+                continue
             log_error(f"\nINFO: {formatted_time}: {provider_name}\n")
             log(f"Retrieving reports: {provider_name}") # do this line for pause..instead of retrieve ..use completed
 

@@ -365,7 +365,7 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info,config
                 with open(tsv_full_path, "a", newline="", encoding="utf-8-sig") as f:
                     writer = csv.writer(f, delimiter="\t")
                     writer.writerow(ordered_values)
-            print(f"{provider_name}:{report_type} TSV file successfully created at: {tsv_full_path}")
+            #print(f"{provider_name}:{report_type} TSV file successfully created at: {tsv_full_path}")
             log_error(f"INFO: {provider_name}:{report_type} TSV file successfully created at: {tsv_full_path}")
             #log_error(f"DEBUG: I am inside: {inspect.currentframe().f_code.co_name}")
             return tsv_full_path # Done with the IR_A1/M1 report
@@ -479,8 +479,7 @@ def convert_counter_json_to_tsv(report_type, json_file_path,provider_info,config
                             # Write table row (line 16 onward)
                             writer.writerow(row)
 
-        print(f"{provider_name}:{report_type} file successfully created at: {tsv_full_path}")
-        log_error(f"INFO: {provider_name}:{report_type} TSV file successfully created at: {tsv_full_path}\n")
+        log_error(f"INFO: {provider_name}:{report_type} TSV file successfully created at: {tsv_full_path}")
         return tsv_full_path
 
     except Exception as e:

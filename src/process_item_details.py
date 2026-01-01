@@ -345,7 +345,7 @@ def process_item_details(provider_info,report_type,get_report_url,config):
     if not rows:
         log_error(f'INFO: no data retrieved from tsv file, so nothing to save to sqlite database.')
         return None
-    log_error(f'INFO: saving the contents of {tsv_saved_file} to the sqlite database\n')
+    log_error(f'INFO: saving the contents of {tsv_saved_file} to the sqlite database')
 
     for row in rows:
         try:

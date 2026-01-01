@@ -46,7 +46,7 @@ def validate_date(date_string):
 
 
 
-def check_dates(provider_name, begin_date, end_date, first_month, last_month):
+def check_dates(provider_name, report_id, begin_date, end_date, first_month, last_month):
     # Convert string dates to datetime objects for comparison
     begin_date_dt = datetime.strptime(begin_date, "%Y-%m")
     first_month_dt = datetime.strptime(first_month, "%Y-%m")
@@ -55,13 +55,11 @@ def check_dates(provider_name, begin_date, end_date, first_month, last_month):
 
     # Check if begin_date is before first_month
     if begin_date_dt < first_month_dt:
-        print(f"WARNING: data from {provider_name} will not start until {first_month}")
-        log_error(f"WARNING: data from {provider_name} will not start until {first_month}")
+        log_error(f"WARNING: Data for {provider_name} will not start until {first_month}")
         begin_date=first_month
     # Check if end_date is after last_month
     if end_date_dt > last_month_dt:
-        print(f"WARNING: data from {provider_name} only available through {last_month}")
-        log_error(f"WARNING: data from {provider_name} only available through {last_month}")
+        log_error(f"WARNING: Data for {provider_name} is only available through {last_month}")
         end_date=last_month
     return begin_date, end_date
 
@@ -144,7 +142,7 @@ def get_json_data(url, provider_info):
                     http_desc = (f"Request is queued - try again later:{url}\n {response.text}")
                     #log_error(f'{http_desc}\n')
                     if attempts > 2:
-                        log_error(f'ERROR: Request is queued but taking a long time, try this one again in an hour: {provider_name}:\n   {url}\n')
+                        log_error(f'ERROR: {provider_name} request is queued but taking a long time, try this one again in an hour: \n    {url}')
                         return -1
                     if sleep_delay < 5:
                         sleep_delay = 5
@@ -289,7 +287,6 @@ def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_c
     Returns:
         Dictionary of provider data or None on failure
     """
-    print(f"\nBegin Date: {begin_date}, End Date: {end_date}\n")
     data_dict = {}  # Initialize as an empty dictionary for providers
 
     if not report_type_list:
@@ -300,7 +297,7 @@ def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_c
         #print(f"{is_cancelled_callback()} : {provider.get('Name')}")
         if is_cancelled_callback():
              break
-
+        #skip_provider = False
         provider_info = {}
         checked_date = 0
         get_report_url_credentials = ''
@@ -352,6 +349,8 @@ def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_c
         report_name = provider.get('Report_Name', '')  # for custom reports
         report_description = provider.get('Report_Description', '')  # for custom reports
 
+        if first_month_available > end_date:
+            log(f'Provider: {provider_name}: The first date available ({first_month_available}) is after the last date you selected ({end_date}), skipping provider.\n')
         # Initialize the provider entry
         provider_info = {
             'Name': provider_name,
@@ -405,10 +404,13 @@ def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_c
             if isinstance(report_json, list):  # this must be the supported_reports api response
                 # first check if ANY of the supported reports are among the ones the user selected in the GUI
                 report_ids_in_json = {report.get('Report_ID') for report in report_json if 'Report_ID' in report}
+                human_readable_report_list = ",".join(sorted(str(rid) for rid in report_ids_in_json))
                 if report_ids_in_json.isdisjoint(report_type_list):
                     # If there's no overlap, log it (optional) and skip this whole provider.
                     log_error(f"WARNING: Skipping provider {provider_name} as none of its available reports were selected by the user.")
                     continue  # This 'continue' applies to the OUTER loop
+                else:
+                    log_error(f'INFO: {provider_name}: supported reports: {human_readable_report_list}')
                 for report in report_json:
                     if "Report_ID" not in report:
                         log_error(f"ERROR: No_report_id: a report from {provider_name} does not contain Report_ID\n")
@@ -429,25 +431,26 @@ def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_c
                         e = end_date
                     # adjusts and notifies user if user wants too early begin or too late end
                     if validate_date(first_month) and validate_date(last_month) and not checked_date:
-                        b, e = check_dates(provider_name, begin_date, end_date, first_month, last_month)
+                        b, e = check_dates(provider_name, report_id, begin_date, end_date, first_month, last_month)
                         checked_date = 1
                     if (b > begin_date and not checked_date) and (e < end_date and not checked_date):
-                        print(
-                            f"WARNING: data from {provider_name} will not start until {b} and  only available through {e}\n")
                         log_error(
-                            f"WARNING: data from {provider_name} will not start until {b} and  only available through {e}\n")
+                            f"WARNING: Data for {provider_name}:{report_id} will only cover the range {b} - {e}\n")
                     elif b > begin_date and not checked_date:
-                        print(f"WARNING: data from {provider_name} will not start until {b}")
-                        log_error(f"WARNING: data from {provider_name} will not start until {b}\n")
+                        log_error(f"WARNING: Data for {provider_name}:{report_id} will not start until {b}\n")
                     elif e < end_date and not checked_date:
-                        print(f"WARNING: data from {provider_name} only available through {e}")
-                        log_error(f"WARNING: data from {provider_name} only available through {e}\n")
+                        log_error(f"WARNING: Data for {provider_name}:{report_id} only available through {e}\n")
                     if not validate_date(first_month):
                         b = begin_date
                     if not validate_date(last_month):
                         e = end_date
                     ### Note that begin and end dates start as yyyy-mm but for the API call, they need to be yyyy-mm-dd
                     ###  eg begin 2025-01-01 and end 2025-12-31 or whatever is the last valid date in that month, eg 2025-02-28
+                    if (b[:7] != begin_date[:7] or e[:7] != end_date[:7]) and (e >= b):
+                        log_error(f"WARNING: Dates adjusted for {provider_name}'s available range for report: {report_id}: begin: {b[:7]}, end: {e[:7]}")
+                    elif b > e:
+                        log_error(f'WARNING: {provider_name} Available begin date ({b}) is later than requested end date ({e}), skipping {report_id}')
+                        continue
                     b = get_dd(b, "begin")
                     e = get_dd(e, "end")
                     provider_info['Dates'] = f"{b}-{e}"
@@ -482,6 +485,8 @@ def fetch_json(providers, begin_date, end_date, report_type_list, is_cancelled_c
                     if report_id in ("IR", "TR", "DR", "PR"):
                         provider_info['Report_URLS'][extra_report_id] = get_report_url_final_extra
 
+                #if skip_provider:
+                #    continue
                 # Store the provider information in the main dictionary
                 data_dict[provider_name] = provider_info  # Add provider_info dict  directly to the data_dict
             else:
