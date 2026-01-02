@@ -16,6 +16,7 @@ If you want to write scripts in an editor like MS Word, be careful not to let it
 
 [Platform and Database Report Scripts](Platform_and_Database_Report_Scripts.md):
 - DR report: Summary of most searches ("searches_regular") by database for all platforms
+- PR report: steps to combine a harvest with an sql query and then a pivot in a spreadsheet to make sure you have harvested all available data from each provider
 
 [IR Report Scripts](SQL_Scripts_for_IR_Reports.md)
 - Top articles used, grouped by Journal across all platforms
