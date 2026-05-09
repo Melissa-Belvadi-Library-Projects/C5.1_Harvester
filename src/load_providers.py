@@ -119,7 +119,7 @@ def load_providers(file_path, user_selections, error_callback , warning_callback
                 version = row[header_indices.get('Version',-1)]
                 if version != '5.1':
 
-                    warning_message = f"Skipping '{provider_name}': The 'Version' column must be exactly '5.1', but it was '{version}'."
+                    warning_message = f"Skipping '{provider_name}': The Version column must be exactly 5.1, but it was {version}."
                     warning_callback(warning_message) # removed emit
                     log_error(warning_message)
                     continue
@@ -151,6 +151,14 @@ def load_providers(file_path, user_selections, error_callback , warning_callback
                     'Delay': provider_data.get('Delay', ''),          # If missing, returns ''
                     'Retry': provider_data.get('Retry', '')           # If missing, returns ''
                 }
+
+                base_url = provider['Base_URL']
+                if not isinstance(base_url, str) or not isinstance(version, str) or "r51" not in base_url or "5.1" not in version:
+                    if isinstance(base_url, str) and "r51" not in base_url:
+                        error_message = f"You put 5.1 in the Version field for provider '{provider_name}' but the base url {base_url} is not 5.1 compliant. Provider skipped."
+                        error_callback(error_message)
+                    log_error(f"\nProvider {provider_name} is not Code of Practice version 5.1. Provider being skipped.\nBase_URL: {base_url}\nUser provided version: {version}\n")
+                    continue
                 providers.append(provider)
 
             if not providers:
